@@ -1,0 +1,30 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Gallery from '../../components/Gallery.astro';
+import { moduleEntries } from '../../lib/modules';
+import { ui } from '../../i18n/ui';
+export async function getStaticPaths() {
+  return (await moduleEntries('albums')).map((entry) => ({
+    params: { slug: entry.data.slug },
+    props: { entry },
+  }));
+}
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<BaseLayout title={entry.data.title} image={entry.data.images[0]?.src}>
+  <div class="reading-shell">
+    <header class="page-heading">
+      <a class="text-link" href="/albums/">
+        {ui.albums}
+      </a>
+      <h1>{entry.data.title}</h1>
+    </header>
+    <div class="prose" data-content>
+      <Content />
+    </div>
+    <Gallery images={entry.data.images} />
+  </div>
+</BaseLayout>

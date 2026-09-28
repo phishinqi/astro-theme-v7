@@ -1,0 +1,76 @@
+---
+import { IconSearch, IconSun, IconMoon, IconMenu2 } from '@tabler/icons-react';
+import { siteConfig, localized, enabledHref } from '../site.config';
+import { ui } from '../i18n/ui';
+const path = Astro.url.pathname;
+const nav = siteConfig.nav.filter((item) => enabledHref(item.href));
+const moreNav = siteConfig.moreNav.filter((item) => enabledHref(item.href));
+---
+
+<header class="site-header shell" id="top">
+  <a class="wordmark" href="/" aria-label={`${siteConfig.title} — ${ui.home}`}>
+    {siteConfig.title}
+  </a>
+  <div class="header-right">
+    <nav class="desktop-nav" aria-label={ui.menu}>
+      {nav.map((item) => (
+        <a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined}>
+          {localized(item.label)}
+        </a>
+      ))}
+      {moreNav.length > 0 && (
+        <details class="more-nav">
+          <summary>{ui.more}</summary>
+          <div class="more-menu">
+            {moreNav.map((item) => (
+              <a href={item.href}>{localized(item.label)}</a>
+            ))}
+          </div>
+        </details>
+      )}
+    </nav>
+    <div class="header-actions">
+      <button
+        class="icon-button"
+        id="language-toggle"
+        type="button"
+        aria-label={ui.language}
+        hidden
+      >
+        EN
+      </button>
+      <a
+        class="icon-button"
+        href="/search/"
+        data-search-trigger
+        aria-label={ui.search}
+        title={ui.search}
+      >
+        <IconSearch size={19} stroke={1.5} aria-hidden="true" />
+      </a>
+      <button
+        class="icon-button"
+        id="theme-toggle"
+        type="button"
+        aria-label={ui.themeToggle}
+        title={ui.themeToggle}
+        hidden
+      >
+        <IconMoon className="theme-moon" size={18} stroke={1.5} aria-hidden="true" />
+        <IconSun className="theme-sun" size={19} stroke={1.5} aria-hidden="true" />
+      </button>
+      <details class="mobile-nav" id="mobile-nav">
+        <summary class="icon-button" aria-label={ui.menu} title={ui.menu}>
+          <IconMenu2 size={21} stroke={1.5} aria-hidden="true" />
+        </summary>
+        <nav class="mobile-menu" aria-label={ui.menu}>
+          {[...nav, ...moreNav].map((item) => (
+            <a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined}>
+              {localized(item.label)}
+            </a>
+          ))}
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>

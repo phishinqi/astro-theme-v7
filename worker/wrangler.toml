@@ -1,0 +1,16 @@
+name = "v7-content-services"
+main = "index.mjs"
+compatibility_date = "2026-09-01"
+
+[vars]
+SITE_ORIGIN = "https://example.com"
+GITHUB_REPO = "phishinqi/astro-theme-v7"
+GITHUB_CLIENT_ID = "replace-with-oauth-client-id"
+PUBLIC_MEDIA_URL = "https://img.example.com"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "v7-media"
+
+# Set GITHUB_CLIENT_SECRET using `wrangler secret put`; never commit it.
+# GitHub-only media needs OAuth but can omit the R2 binding and PUBLIC_MEDIA_URL.

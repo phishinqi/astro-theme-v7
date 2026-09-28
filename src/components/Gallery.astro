@@ -1,0 +1,28 @@
+---
+import MediaImage from './MediaImage.astro';
+interface Props {
+  images: Array<{
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+    caption?: string;
+    srcset?: string;
+  }>;
+}
+const { images } = Astro.props;
+---
+
+<div class="gallery" data-gallery>
+  {images.map((image) => (
+    <figure>
+      <a href={image.src} data-lightbox aria-label={image.alt}>
+        <MediaImage {...image} />
+      </a>
+      {image.caption && <figcaption>{image.caption}</figcaption>}
+    </figure>
+  ))}
+</div>
+<script>
+  import '../scripts/gallery';
+</script>

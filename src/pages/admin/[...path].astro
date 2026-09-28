@@ -1,0 +1,33 @@
+---
+import { siteConfig } from '../../site.config';
+import { cmsConfig } from '../../lib/cms-config';
+export function getStaticPaths() {
+  return siteConfig.cms.enabled ? [{ params: { path: undefined } }] : [];
+}
+const config = cmsConfig();
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>V7 · 写作后台</title>
+    <script is:inline>
+      window.CMS_MANUAL_INIT = true;
+    </script>
+  </head>
+  <body>
+    <noscript>写作后台需要 JavaScript。</noscript>
+    <div id="cms-loading">正在加载写作后台…</div>
+    <script
+      is:inline
+      type="application/json"
+      id="cms-config"
+      set:html={JSON.stringify(config).replace(/</g, '\\u003c')}
+    />
+    <script is:inline src="/admin/vendor/decap-cms.js"></script>
+    <script is:inline type="module" src="/admin/init.js"></script>
+  </body>
+</html>
