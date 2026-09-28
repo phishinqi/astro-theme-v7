@@ -32,26 +32,27 @@ async function limitedBody(request) {
   }
   return new Blob(chunks, { type: request.headers.get('Content-Type') || '' });
 }
+// Served by Cloudflare Pages Functions under /api/*, on the same origin as the site and editor.
 export async function handle(request, env) {
   const url = new URL(request.url);
-  const origin = new URL(env.SITE_ORIGIN).origin;
-  if (url.pathname === '/auth' && request.method === 'GET') {
+  const origin = url.origin;
+  if (url.pathname === '/api/auth' && request.method === 'GET') {
     const state = crypto.randomUUID();
     const github = new URL('https://github.com/login/oauth/authorize');
     github.searchParams.set('client_id', env.GITHUB_CLIENT_ID);
     github.searchParams.set('scope', 'repo');
     github.searchParams.set('state', state);
-    github.searchParams.set('redirect_uri', `${url.origin}/callback`);
+    github.searchParams.set('redirect_uri', `${origin}/api/callback`);
     return new Response(null, {
       status: 302,
       headers: {
         Location: github.href,
-        'Set-Cookie': `v7-oauth-state=${state}; HttpOnly; Secure; SameSite=Lax; Path=/callback; Max-Age=600`,
+        'Set-Cookie': `v7-oauth-state=${state}; HttpOnly; Secure; SameSite=Lax; Path=/api/callback; Max-Age=600`,
         'Cache-Control': 'no-store',
       },
     });
   }
-  if (url.pathname === '/callback' && request.method === 'GET') {
+  if (url.pathname === '/api/callback' && request.method === 'GET') {
     const state = request.headers.get('Cookie')?.match(/(?:^|;\s*)v7-oauth-state=([^;]+)/)?.[1];
     if (!state || state !== url.searchParams.get('state') || !url.searchParams.get('code'))
       return json({ error: 'Invalid OAuth state' }, 400);
@@ -62,7 +63,7 @@ export async function handle(request, env) {
         client_id: env.GITHUB_CLIENT_ID,
         client_secret: env.GITHUB_CLIENT_SECRET,
         code: url.searchParams.get('code'),
-        redirect_uri: `${url.origin}/callback`,
+        redirect_uri: `${origin}/api/callback`,
       }),
     });
     const result = await response.json();
@@ -82,24 +83,17 @@ export async function handle(request, env) {
           'Referrer-Policy': 'no-referrer',
           'Content-Security-Policy': `default-src 'none'; script-src 'nonce-${nonce}'; frame-ancestors 'none'`,
           'Set-Cookie':
-            'v7-oauth-state=; HttpOnly; Secure; SameSite=Lax; Path=/callback; Max-Age=0',
+            'v7-oauth-state=; HttpOnly; Secure; SameSite=Lax; Path=/api/callback; Max-Age=0',
         },
       },
     );
   }
-  if (url.pathname !== '/media') return json({ error: 'Not found' }, 404);
+  if (url.pathname !== '/api/media') return json({ error: 'Not found' }, 404);
+  // Same-origin only: browsers always send Origin on POST, and the editor sends it on GET too.
   if (request.headers.get('Origin') !== origin) return json({ error: 'Origin not allowed' }, 403);
-  const cors = {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    Vary: 'Origin',
-  };
-  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
   if (!(await repositoryAccess(request.headers.get('Authorization')?.replace(/^Bearer /, ''), env)))
-    return json({ error: 'Repository write access required' }, 403, cors);
-  if (!env.MEDIA || !env.PUBLIC_MEDIA_URL)
-    return json({ error: 'R2 is not configured' }, 503, cors);
+    return json({ error: 'Repository write access required' }, 403);
+  if (!env.MEDIA || !env.PUBLIC_MEDIA_URL) return json({ error: 'R2 is not configured' }, 503);
   if (request.method === 'GET') {
     const page = await env.MEDIA.list({
       prefix: 'meta/',
@@ -115,10 +109,9 @@ export async function handle(request, env) {
     return json(
       { assets: assets.filter(Boolean), cursor: page.truncated ? page.cursor : null },
       200,
-      cors,
     );
   }
-  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405, cors);
+  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   try {
     const form = await new Response(await limitedBody(request), {
       headers: { 'Content-Type': request.headers.get('Content-Type') },
@@ -177,26 +170,25 @@ export async function handle(request, env) {
         width: main.width,
         height: main.height,
         name: String(metadata.name || 'Image').slice(0, 180),
+        ...(/^#[0-9a-f]{6}$/i.test(metadata.color || '') ? { color: metadata.color } : {}),
         srcset: files.map((f) => `${f.url} ${f.width}w`).join(', '),
       };
       await env.MEDIA.put(`meta/${id}.json`, JSON.stringify(asset), {
         httpMetadata: { contentType: 'application/json' },
       });
-      return json(asset, 201, cors);
+      return json(asset, 201);
     } catch (error) {
       await env.MEDIA.delete(saved);
       throw error;
     }
   } catch (error) {
-    return json({ error: error.message || 'Invalid upload' }, 400, cors);
+    return json({ error: error.message || 'Invalid upload' }, 400);
   }
 }
-export default {
-  async fetch(request, env) {
-    try {
-      return await handle(request, env);
-    } catch {
-      return json({ error: 'Content service unavailable' }, 503);
-    }
-  },
-};
+export async function serve(request, env) {
+  try {
+    return await handle(request, env);
+  } catch {
+    return json({ error: 'Content service unavailable' }, 503);
+  }
+}

@@ -2,14 +2,13 @@
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Gallery from '../../components/Gallery.astro';
-import MediaImage from '../../components/MediaImage.astro';
 import { moduleEntries, friendEntries, type ModuleName } from '../../lib/modules';
 import { siteConfig } from '../../site.config';
 import { ui } from '../../i18n/ui';
 import { formatDate } from '../../lib/posts';
 export async function getStaticPaths() {
   const paths = [];
-  for (const section of ['friends', 'moments', 'timeline', 'roadmap', 'albums'] as const) {
+  for (const section of ['friends', 'moments', 'timeline', 'roadmap'] as const) {
     if (!siteConfig.features[section]) continue;
     const entries = section === 'friends' ? [] : await moduleEntries(section);
     const perPage = section === 'roadmap' ? Math.max(1, entries.length) : siteConfig.postsPerPage;
@@ -28,7 +27,7 @@ export async function getStaticPaths() {
   return paths;
 }
 const { section, entries, current, total } = Astro.props;
-const title = ui[section as ModuleName | 'friends'];
+const title = ui[section as Exclude<ModuleName, 'albums'> | 'friends'];
 const rendered = await Promise.all(
   entries.map(async (entry) => ({ ...entry, ...(await render(entry)) })),
 );
@@ -89,29 +88,11 @@ const url = (page: number) => `/${section}/${page === 1 ? '' : `page/${page}/`}`
         {rendered.map(({ data, Content }) => (
           <article class="module-entry" id={data.slug} data-content>
             <time datetime={data.date.toISOString()}>{formatDate(data.date)}</time>
-            <h2>
-              {section === 'albums' ? (
-                <a href={`/albums/${data.slug}/`}>{data.title}</a>
-              ) : (
-                data.title
-              )}
-            </h2>
-            {section === 'albums' ? (
-              <>
-                {data.images[0] && (
-                  <a href={`/albums/${data.slug}/`}>
-                    <MediaImage {...data.images[0]} />
-                  </a>
-                )}
-              </>
-            ) : (
-              <>
-                <div class="prose">
-                  <Content />
-                </div>
-                {data.images.length > 0 && <Gallery images={data.images} />}
-              </>
-            )}
+            <h2>{data.title}</h2>
+            <div class="prose">
+              <Content />
+            </div>
+            {data.images.length > 0 && <Gallery images={data.images} />}
           </article>
         ))}
       </div>

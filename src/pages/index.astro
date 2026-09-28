@@ -8,7 +8,18 @@ import { siteConfig, localized } from '../site.config';
 import { ui } from '../i18n/ui';
 import { moduleEntries } from '../lib/modules';
 import { IconBrandGithub, IconMail, IconLink } from '@tabler/icons-react';
+import { formatDate } from '../lib/posts';
 const moments = (await moduleEntries('moments')).slice(0, 3);
+// A first sentence or so of each moment; the full text lives on /moments/.
+const excerpt = (body = '') => {
+  const text = body
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[#>*_`~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length > 72 ? `${text.slice(0, 70).trimEnd()}…` : text;
+};
 const { featured, recent } = homePosts(
   await getPublishedPosts(),
   siteConfig.home.featuredLimit,
@@ -55,15 +66,21 @@ const { featured, recent } = homePosts(
           </a>
         </div>
         {moments.length ? (
-          moments.map((entry) => (
-            <p data-content>
-              <a class="text-link" href={`/moments/#${entry.data.slug}`}>
-                {entry.data.title}
-              </a>
-            </p>
-          ))
+          <ul class="moment-previews">
+            {moments.map((entry) => (
+              <li>
+                <a href={`/moments/#${entry.data.slug}`}>
+                  <time datetime={entry.data.date.toISOString()}>
+                    {formatDate(entry.data.date)}
+                  </time>
+                  <strong data-content>{entry.data.title}</strong>
+                  <span data-content>{excerpt(entry.body)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         ) : (
-          <p>{ui.noItems}</p>
+          <p class="empty-state">{ui.noItems}</p>
         )}
       </section>
     )}

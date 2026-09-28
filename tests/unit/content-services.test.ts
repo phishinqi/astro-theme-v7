@@ -1,21 +1,23 @@
 import { it, expect, vi, afterEach } from 'vitest';
-import { handle } from '../../worker/index.mjs';
+import { handle, serve } from '../../src/server/content-services.mjs';
+const site = 'https://example.com';
 const env = {
-  SITE_ORIGIN: 'https://example.com',
   GITHUB_REPO: 'owner/repo',
   GITHUB_CLIENT_ID: 'demo',
   PUBLIC_MEDIA_URL: 'https://img.example.com',
 };
 afterEach(() => vi.unstubAllGlobals());
 it('binds OAuth state to an HttpOnly callback cookie', async () => {
-  const response = await handle(new Request('https://worker.example/auth'), env);
+  const response = await handle(new Request('https://example.com/api/auth'), env);
   expect(response.status).toBe(302);
   expect(response.headers.get('Set-Cookie')).toContain('HttpOnly');
   const redirect = new URL(response.headers.get('Location')!);
   expect(redirect.origin).toBe('https://github.com');
   expect(redirect.searchParams.get('state')).toBeTruthy();
+  expect(redirect.searchParams.get('redirect_uri')).toBe('https://example.com/api/callback');
+  expect(response.headers.get('Set-Cookie')).toContain('Path=/api/callback');
   const denied = await handle(
-    new Request('https://worker.example/callback?state=wrong&code=test'),
+    new Request('https://example.com/api/callback?state=wrong&code=test'),
     env,
   );
   expect(denied.status).toBe(400);
@@ -24,7 +26,7 @@ it('rejects unauthorized origins before contacting GitHub', async () => {
   const fetchMock = vi.fn();
   vi.stubGlobal('fetch', fetchMock);
   const response = await handle(
-    new Request('https://worker.example/media', {
+    new Request('https://example.com/api/media', {
       headers: { Origin: 'https://attacker.example' },
     }),
     env,
@@ -38,8 +40,8 @@ it('requires repository write access to list images', async () => {
     vi.fn().mockResolvedValue(Response.json({ permissions: { push: false } })),
   );
   const response = await handle(
-    new Request('https://worker.example/media', {
-      headers: { Origin: env.SITE_ORIGIN, Authorization: 'Bearer test' },
+    new Request('https://example.com/api/media', {
+      headers: { Origin: site, Authorization: 'Bearer test' },
     }),
     env,
   );
@@ -59,9 +61,9 @@ it('rejects fake image bytes without writing R2 objects', async () => {
     'fake.webp',
   );
   const response = await handle(
-    new Request('https://worker.example/media', {
+    new Request('https://example.com/api/media', {
       method: 'POST',
-      headers: { Origin: env.SITE_ORIGIN, Authorization: 'Bearer test' },
+      headers: { Origin: site, Authorization: 'Bearer test' },
       body: form,
     }),
     { ...env, MEDIA: { put } },
@@ -79,9 +81,9 @@ it('stores authorized image variants and publishes a responsive manifest', async
   );
   form.append('file-480', new Blob(['RIFF0000WEBPdata'], { type: 'image/webp' }), 'test.webp');
   const response = await handle(
-    new Request('https://worker.example/media', {
+    new Request('https://example.com/api/media', {
       method: 'POST',
-      headers: { Origin: env.SITE_ORIGIN, Authorization: 'Bearer test' },
+      headers: { Origin: site, Authorization: 'Bearer test' },
       body: form,
     }),
     { ...env, MEDIA: { put } },
@@ -91,4 +93,38 @@ it('stores authorized image variants and publishes a responsive manifest', async
   expect(result.src).toMatch(/^https:\/\/img.example.com\/images\/[^/]+\/480.webp$/);
   expect(result.srcset).toContain('480w');
   expect(put).toHaveBeenCalledTimes(2);
+});
+it('keeps the dominant colour only when it is a plain hex value', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => Response.json({ permissions: { push: true } })),
+  );
+  const upload = async (color: string) => {
+    const form = new FormData();
+    form.append(
+      'metadata',
+      JSON.stringify({
+        name: 'a.webp',
+        color,
+        sizes: [{ field: 'file-480', width: 480, height: 320 }],
+      }),
+    );
+    form.append('file-480', new Blob(['RIFF0000WEBPdata'], { type: 'image/webp' }), 'a.webp');
+    const response = await handle(
+      new Request('https://example.com/api/media', {
+        method: 'POST',
+        headers: { Origin: site, Authorization: 'Bearer test' },
+        body: form,
+      }),
+      { ...env, MEDIA: { put: vi.fn().mockResolvedValue({}) } },
+    );
+    return response.json();
+  };
+  expect((await upload('#a0b1c2')).color).toBe('#a0b1c2');
+  expect((await upload('red;background:url(x)')).color).toBeUndefined();
+});
+it('answers unknown routes with 404 and hides internal failures', async () => {
+  expect((await handle(new Request('https://example.com/api/other'), env)).status).toBe(404);
+  const broken = await serve(new Request('https://example.com/api/auth'), {} as typeof env);
+  expect([302, 503]).toContain(broken.status);
 });

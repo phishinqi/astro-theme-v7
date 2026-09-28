@@ -1,6 +1,6 @@
 ---
 import { siteConfig } from '../../site.config';
-import { cmsConfig } from '../../lib/cms-config';
+import { cmsConfig, adminSettings } from '../../lib/cms-config';
 export function getStaticPaths() {
   return siteConfig.cms.enabled ? [{ params: { path: undefined } }] : [];
 }
@@ -26,6 +26,12 @@ const config = cmsConfig();
       type="application/json"
       id="cms-config"
       set:html={JSON.stringify(config).replace(/</g, '\\u003c')}
+    />
+    <script
+      is:inline
+      type="application/json"
+      id="v7-admin"
+      set:html={JSON.stringify(adminSettings()).replace(/</g, '<')}
     />
     <script is:inline src="/admin/vendor/decap-cms.js"></script>
     <script is:inline type="module" src="/admin/init.js"></script>

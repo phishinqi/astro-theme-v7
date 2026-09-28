@@ -1,7 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { postSchema } from './lib/post-schema';
-import { moduleSchema } from './lib/module-schema';
+import { moduleSchema, albumSchema } from './lib/module-schema';
 
 const posts = defineCollection({
   loader: glob({
@@ -22,5 +22,8 @@ export const collections = {
   moments: moduleCollection('moments'),
   timeline: moduleCollection('timeline'),
   roadmap: moduleCollection('roadmap'),
-  albums: moduleCollection('albums'),
+  albums: defineCollection({
+    loader: glob({ pattern: '**/*.md', base: './content/albums' }),
+    schema: albumSchema,
+  }),
 };

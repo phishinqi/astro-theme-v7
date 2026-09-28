@@ -18,22 +18,17 @@ const year = new Intl.DateTimeFormat('en', {
 <footer class="site-footer shell">
   {siteConfig.features.stats && (
     <dl class="site-stats" aria-label={ui.stats}>
-      <div>
-        <dt>{ui.articles}</dt>
-        <dd>{posts.length}</dd>
-      </div>
-      <div>
-        <dt>{ui.tags}</dt>
-        <dd>{tags.size}</dd>
-      </div>
-      <div>
-        <dt>{ui.categories}</dt>
-        <dd>{categories.size}</dd>
-      </div>
-      <div>
-        <dt>{ui.words}</dt>
-        <dd>{wordCount.toLocaleString('en')}</dd>
-      </div>
+      {[
+        [ui.articles, posts.length.toLocaleString('en')],
+        [ui.tags, tags.size.toLocaleString('en')],
+        [ui.categories, categories.size.toLocaleString('en')],
+        [ui.words, wordCount.toLocaleString('en')],
+      ].map(([label, value]) => (
+        <div>
+          <dt>{label}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
       <div>
         <dt>{ui.days}</dt>
         <dd data-started-at={siteConfig.startedAt}>
@@ -51,6 +46,11 @@ const year = new Intl.DateTimeFormat('en', {
       <a href="/tags/">{ui.tags}</a>
       <a href="/rss.xml">RSS</a>
       <a href="/about/">{ui.about}</a>
+      {siteConfig.cms.enabled && (
+        <a class="footer-write" href="/admin/" rel="nofollow">
+          {ui.write}
+        </a>
+      )}
     </nav>
   </div>
   <div class="footer-bottom">

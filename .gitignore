@@ -34,3 +34,4 @@ worker/.wrangler/
 *.arw
 *.dng
 *.raf
+.scratch/

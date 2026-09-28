@@ -1,4 +1,4 @@
-import { dictionaries } from './ui';
+import { dictionaries, languages } from './ui';
 import siteConfig from '../../site.config.json';
 import authorRegistry from '../../data/authors.json';
 import categoryRegistry from '../../data/categories.json';
@@ -71,13 +71,12 @@ export function applyLocale(locale: Locale) {
       new Date(`2026-${el.dataset.archiveMonth}-01T00:00:00Z`),
     );
   });
-  document
-    .querySelector('#language-toggle')
-    ?.setAttribute(
-      'aria-label',
-      `${locale === 'en' ? '中' : 'EN'} — ${dictionaries[locale].language}`,
-    );
-  const button = document.querySelector('#language-toggle');
-  if (button) button.textContent = locale === 'en' ? '中' : 'EN';
+  const language = languages.find((l) => l.code === locale);
+  document.querySelectorAll<HTMLElement>('[data-language-code]').forEach((el) => {
+    el.textContent = language?.short ?? locale;
+  });
+  document.querySelectorAll<HTMLElement>('[data-locale]').forEach((el) => {
+    el.setAttribute('aria-checked', String(el.dataset.locale === locale));
+  });
   window.dispatchEvent(new CustomEvent('v7:locale', { detail: locale }));
 }

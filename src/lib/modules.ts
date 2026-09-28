@@ -1,11 +1,11 @@
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import { siteConfig } from '../site.config';
 import friends from '../../data/friends.json';
 import { z } from 'astro/zod';
 export type ModuleName = 'moments' | 'timeline' | 'roadmap' | 'albums';
-export async function moduleEntries(name: ModuleName) {
+export async function moduleEntries<N extends ModuleName>(name: N): Promise<CollectionEntry<N>[]> {
   if (!siteConfig.features[name]) return [];
-  const entries = await getCollection(name);
+  const entries: CollectionEntry<N>[] = await getCollection(name);
   const slugs = new Set<string>();
   for (const entry of entries) {
     if (slugs.has(entry.data.slug)) throw new Error(`Duplicate ${name} slug: ${entry.data.slug}`);

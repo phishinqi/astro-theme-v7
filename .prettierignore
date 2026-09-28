@@ -7,4 +7,5 @@ test-results/
 coverage/
 public/admin/vendor/
 .reports/
-worker/.wrangler/
+.wrangler/
+.scratch/

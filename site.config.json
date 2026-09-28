@@ -78,8 +78,9 @@
   },
   "media": {
     "provider": "github",
-    "workerURL": "",
-    "publicURL": ""
+    "exifPrefill": true,
+    "license": "all-rights-reserved",
+    "licenseText": ""
   },
   "cms": {
     "enabled": true,

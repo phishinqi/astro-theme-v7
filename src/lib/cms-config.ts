@@ -1,5 +1,6 @@
 import settings from '../../site.config.json';
 import { siteConfig } from '../site.config';
+import { licensePresets } from './licenses';
 const text = (name: string, label = name, required = true) => ({
   name,
   label,
@@ -41,22 +42,21 @@ const number = (name: string) => ({
 const imageFields = [
   { name: 'src', label: '图片 / Image', widget: 'image' },
   text('alt', '替代文本'),
-  number('width'),
-  number('height'),
+  { ...number('width'), label: '宽度（自动填写）' },
+  { ...number('height'), label: '高度（自动填写）' },
   text('caption', '说明', false),
-  text('srcset', '响应式图片集（R2 上传后可填）', false),
+  text('color', '主色（自动填写）', false),
+  text('srcset', '响应式图片集（R2 自动填写）', false),
 ];
+// Multi-field lists keep each image as a plain object; v7-media-list fills in size and colour.
 const imageList = {
   name: 'images',
   label: '图片',
-  widget: 'list',
+  label_singular: '图片',
+  widget: 'v7-media-list',
   required: false,
-  field: {
-    name: 'image',
-    label: '图片',
-    widget: 'v7-image',
-    fields: imageFields.map((field) => ({ ...field, required: false })),
-  },
+  summary: '{{fields.src}}',
+  fields: imageFields,
 };
 const body = (raw = false) => ({
   name: 'body',
@@ -75,6 +75,91 @@ const relation = (name: string, file: string, field: string, multiple = false) =
   display_fields: [`${file}.*.${field}`],
   multiple,
 });
+const optional = <T extends object>(field: T) => ({ ...field, required: false });
+const photoTagRelation = (name: string, label: string) => ({
+  name,
+  label,
+  widget: 'relation',
+  collection: 'data',
+  file: 'photoTags',
+  search_fields: ['tags.*.id'],
+  value_field: 'tags.*.id',
+  display_fields: ['tags.*.id'],
+  multiple: true,
+  required: false,
+  hint: '在“作者、分类、标签与友链 → 照片标签”中维护可选标签。',
+});
+const licenseField = {
+  name: 'license',
+  label: '许可（留空沿用站点默认）',
+  widget: 'select',
+  options: [...licensePresets],
+  required: false,
+};
+const photoFields = [
+  { name: 'src', label: '图片', widget: 'image', hint: '上传时自动压缩为 WebP 并移除 EXIF。' },
+  text('alt', '替代文本（描述画面，供读屏与加载失败时使用）'),
+  { ...text('id', '图片 ID（用于分享链接；上传时自动生成）', false), pattern: slug.pattern },
+  {
+    name: 'kind',
+    label: '类型',
+    widget: 'select',
+    options: [
+      { label: '照片', value: 'photo' },
+      { label: '创作', value: 'artwork' },
+    ],
+    default: 'photo',
+  },
+  text('title', '标题', false),
+  optional({ name: 'caption', label: '说明', widget: 'text' }),
+  optional({
+    name: 'date',
+    label: '拍摄 / 创作日期',
+    widget: 'datetime',
+    format: 'YYYY-MM-DD',
+    date_format: 'YYYY-MM-DD',
+    time_format: false,
+    default: '',
+  }),
+  text('location', '地点', false),
+  photoTagRelation('tags', '标签'),
+  optional({ ...relation('author', 'authors', 'id'), label: '作者（留空沿用相册作者）' }),
+  licenseField,
+  text('licenseText', '自定义许可文字（许可选 custom 时填写）', false),
+  {
+    name: 'photo',
+    label: '摄影参数（照片）',
+    widget: 'object',
+    collapsed: true,
+    required: false,
+    fields: [
+      text('camera', '相机', false),
+      text('lens', '镜头', false),
+      text('focalLength', '焦距，如 35mm', false),
+      text('aperture', '光圈，如 f/2.8', false),
+      text('shutter', '快门，如 1/250s', false),
+      optional({ ...number('iso'), label: 'ISO' }),
+      text('film', '胶片型号', false),
+      text('software', '后期软件', false),
+    ],
+  },
+  {
+    name: 'artwork',
+    label: '创作信息（创作）',
+    widget: 'object',
+    collapsed: true,
+    required: false,
+    fields: [
+      text('device', '设备，如 iPad Pro', false),
+      text('software', '软件或工具，如 Procreate', false),
+      text('medium', '媒介，如 数字、水彩', false),
+    ],
+  },
+  { ...number('width'), label: '宽度（自动填写）' },
+  { ...number('height'), label: '高度（自动填写）' },
+  text('color', '主色（自动填写）', false),
+  text('srcset', '响应式图片集（R2 自动填写）', false),
+];
 const postFields = [
   text('title', '标题'),
   { ...text('description', '摘要'), widget: 'text' },
@@ -134,10 +219,15 @@ function settingsFields(value: Record<string, unknown>): unknown[] {
     if (typeof value === 'number') return { ...number(name), min: name === 'postsPerPage' ? 1 : 0 };
     if (name === 'provider')
       return { name, label: '图片存储', widget: 'select', options: ['github', 'r2'] };
+    if (name === 'license') return { ...licenseField, label: '相册图片默认许可', required: true };
     if (name === 'locale')
       return { name, label: '默认界面语言', widget: 'select', options: ['zh-CN', 'en'] };
     return { ...text(name, name, false), default: value };
   });
+}
+/** Settings the admin script needs that are not part of Decap's own configuration. */
+export function adminSettings() {
+  return { provider: siteConfig.media.provider, exifPrefill: siteConfig.media.exifPrefill };
 }
 export function cmsConfig() {
   return {
@@ -145,17 +235,19 @@ export function cmsConfig() {
       name: 'github',
       repo: siteConfig.cms.repo,
       branch: siteConfig.cms.branch,
-      ...(siteConfig.cms.authURL
-        ? { base_url: siteConfig.cms.authURL, auth_endpoint: 'auth' }
-        : {}),
+      // Empty authURL: the editor uses its own origin, where functions/api/ serves OAuth.
+      base_url: siteConfig.cms.authURL.replace(/\/$/, ''),
+      auth_endpoint: 'api/auth',
     },
-    local_backend: siteConfig.cms.localBackend,
+    // DECAP_PROXY_PORT (build time) points the editor at a proxy started with the same PORT.
+    local_backend:
+      siteConfig.cms.localBackend && process.env.DECAP_PROXY_PORT
+        ? { url: `http://localhost:${Number(process.env.DECAP_PROXY_PORT)}/api/v1` }
+        : siteConfig.cms.localBackend,
     publish_mode: 'editorial_workflow',
     media_folder: 'public/images/uploads',
     public_folder: '/images/uploads',
-    ...(siteConfig.media.provider === 'r2'
-      ? { media_library: { name: 'v7-r2', config: { workerURL: siteConfig.media.workerURL } } }
-      : {}),
+    ...(siteConfig.media.provider === 'r2' ? { media_library: { name: 'v7-r2', config: {} } } : {}),
     collections: [
       ...(['md', 'mdx'] as const).map((extension) => ({
         name: `posts-${extension}`,
@@ -181,11 +273,11 @@ export function cmsConfig() {
           fields: [body(true)],
         })),
       },
-      ...(['moments', 'timeline', 'roadmap', 'albums'] as const)
+      ...(['moments', 'timeline', 'roadmap'] as const)
         .filter((name) => siteConfig.features[name])
         .map((name) => ({
           name,
-          label: { moments: '动态', timeline: '时间线', roadmap: '路线图', albums: '相册' }[name],
+          label: { moments: '动态', timeline: '时间线', roadmap: '路线图' }[name],
           folder: `content/${name}`,
           create: true,
           extension: 'md',
@@ -211,6 +303,46 @@ export function cmsConfig() {
             body(),
           ],
         })),
+      ...(siteConfig.features.albums
+        ? [
+            {
+              name: 'albums',
+              label: '相册',
+              folder: 'content/albums',
+              create: true,
+              extension: 'md',
+              format: 'frontmatter',
+              identifier_field: 'slug',
+              slug: '{{slug}}',
+              summary: '{{title}}',
+              fields: [
+                text('title', '标题'),
+                slug,
+                date('date'),
+                bool('draft'),
+                optional({ name: 'description', label: '简介', widget: 'text' }),
+                optional({ ...relation('authors', 'authors', 'id', true), label: '作者' }),
+                photoTagRelation('tags', '相册标签'),
+                {
+                  ...text('cover', '封面图片 ID（留空使用第一张）', false),
+                  pattern: slug.pattern,
+                },
+                {
+                  name: 'images',
+                  label: '图片',
+                  label_singular: '图片',
+                  widget: 'v7-media-list',
+                  v7_prefill: true,
+                  required: false,
+                  collapsed: true,
+                  summary: '{{fields.title}} · {{fields.src}}',
+                  fields: photoFields,
+                },
+                { ...body(), required: false },
+              ],
+            },
+          ]
+        : []),
       {
         name: 'data',
         label: '作者、分类、标签与友链',
@@ -264,6 +396,26 @@ export function cmsConfig() {
             file: 'data/tags.json',
             fields: [{ name: 'tags', label: '标签', widget: 'list', fields: [text('name')] }],
           },
+          ...(siteConfig.features.albums
+            ? [
+                {
+                  name: 'photoTags',
+                  label: '照片标签',
+                  file: 'data/photo-tags.json',
+                  fields: [
+                    {
+                      name: 'tags',
+                      label: '照片标签（与文章标签分开维护）',
+                      widget: 'list',
+                      fields: [
+                        { ...text('id', '稳定 ID'), pattern: slug.pattern },
+                        localized('label'),
+                      ],
+                    },
+                  ],
+                },
+              ]
+            : []),
           ...(siteConfig.features.friends
             ? [
                 {

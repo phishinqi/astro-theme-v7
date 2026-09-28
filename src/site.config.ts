@@ -1,7 +1,9 @@
 import raw from '../site.config.json';
 import categories from '../data/categories.json';
 import authors from '../data/authors.json';
+import photoTags from '../data/photo-tags.json';
 import { z } from 'astro/zod';
+import { licensePresets } from './lib/licenses';
 
 export type Locale = 'zh-CN' | 'en';
 export type Localized = Record<Locale, string>;
@@ -33,6 +35,11 @@ if (new Set(categories.categories.map((a) => a.id)).size !== categories.categori
 export const authorRegistry = z
   .record(id, authorSchema)
   .parse(Object.fromEntries(authors.authors.map(({ id, ...value }) => [id, value])));
+if (new Set(photoTags.tags.map((t) => t.id)).size !== photoTags.tags.length)
+  throw new Error('Duplicate photo tag ID.');
+export const photoTagRegistry = z
+  .record(id, localizedSchema)
+  .parse(Object.fromEntries(photoTags.tags.map((t) => [t.id, t.label])));
 export const categoryRegistry = z
   .record(id, categorySchema)
   .parse(Object.fromEntries(categories.categories.map(({ id, ...value }) => [id, value])));
@@ -79,8 +86,9 @@ const parsed = z
     links: z.object({ externalNewTab: z.boolean() }),
     media: z.object({
       provider: z.enum(['github', 'r2']),
-      workerURL: z.string(),
-      publicURL: z.string(),
+      exifPrefill: z.boolean().default(true),
+      license: z.enum(licensePresets).default('all-rights-reserved'),
+      licenseText: z.string().default(''),
     }),
     cms: z.object({
       enabled: z.boolean(),
@@ -124,7 +132,9 @@ export function isInCategory(actual: string, parent: string): boolean {
   return categoryAncestors(actual).includes(parent);
 }
 export function enabledHref(href: string): boolean {
-  const key = href.split('/')[1];
+  const segment = href.split('/')[1];
+  // The photo wall belongs to the albums module.
+  const key = segment === 'photos' ? 'albums' : segment;
   return (
     !key ||
     !(key in siteConfig.features) ||

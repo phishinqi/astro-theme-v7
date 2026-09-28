@@ -56,15 +56,9 @@ if (hero && !reducedMotion.matches)
   );
 const menu = document.querySelector<HTMLDetailsElement>('#mobile-nav');
 menu?.addEventListener('toggle', () => {
-  if (menu.open && !reducedMotion.matches)
-    void import('gsap').then(({ gsap }) => {
-      if (menu.open)
-        gsap.fromTo(
-          menu.querySelector('nav'),
-          { opacity: 0.3, y: -4 },
-          { opacity: 1, y: 0, duration: 0.28, ease: 'power2.out', clearProps: 'all' },
-        );
-    });
+  const bottom = document.querySelector('[data-site-header]')?.getBoundingClientRect().bottom;
+  if (bottom) root.style.setProperty('--header-height', `${Math.round(bottom)}px`);
+  root.classList.toggle('menu-open', menu.open);
 });
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && menu?.open) {
@@ -76,17 +70,84 @@ document.addEventListener('click', (event) => {
   if (menu?.open && !menu.contains(event.target as Node)) menu.open = false;
 });
 
-const languageButton = document.querySelector<HTMLButtonElement>('#language-toggle');
-if (languageButton) {
-  languageButton.hidden = false;
-  languageButton.addEventListener('click', () => {
-    const locale = currentLocale() === 'en' ? 'zh-CN' : 'en';
+// The header stays reachable: it slides away while reading downwards and returns on the way up.
+const header = document.querySelector<HTMLElement>('[data-site-header]');
+if (header) {
+  let last = scrollY;
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const y = Math.max(0, scrollY);
+    const busy = root.classList.contains('menu-open') || header.querySelector('details[open]');
+    header.classList.toggle('is-scrolled', y > 8);
+    if (!busy && !reducedMotion.matches && Math.abs(y - last) > 6)
+      header.classList.toggle('is-hidden', y > last && y > 240);
+    if (busy || y < 240) header.classList.remove('is-hidden');
+    last = y;
+  };
+  addEventListener(
+    'scroll',
+    () => {
+      if (!ticking) requestAnimationFrame(update);
+      ticking = true;
+    },
+    { passive: true },
+  );
+  header.addEventListener('focusin', () => header.classList.remove('is-hidden'));
+  update();
+}
+
+// Language menu: a small menu of radio items, operable with the keyboard like a native one.
+const languageMenu = document.querySelector<HTMLElement>('[data-language-menu]');
+const languageButton = languageMenu?.querySelector<HTMLButtonElement>('#language-toggle');
+const languageList = languageMenu?.querySelector<HTMLElement>('#language-options');
+if (languageMenu && languageButton && languageList) {
+  languageMenu.hidden = false;
+  const options = () =>
+    Array.from(languageList.querySelectorAll<HTMLButtonElement>('[data-locale]'));
+  const setOpen = (open: boolean, focus: 'current' | 'button' | false = false) => {
+    languageList.hidden = !open;
+    languageButton.setAttribute('aria-expanded', String(open));
+    if (open && focus === 'current')
+      (options().find((o) => o.dataset.locale === currentLocale()) ?? options()[0])?.focus();
+    if (!open && focus === 'button') languageButton.focus();
+  };
+  languageButton.addEventListener('click', () => setOpen(languageList.hidden !== false, 'current'));
+  languageButton.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      setOpen(true, 'current');
+    }
+  });
+  languageList.addEventListener('keydown', (event) => {
+    const list = options();
+    const index = list.indexOf(document.activeElement as HTMLButtonElement);
+    const move = { ArrowDown: 1, ArrowUp: -1 }[event.key];
+    if (move) {
+      event.preventDefault();
+      list[(index + move + list.length) % list.length]?.focus();
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      list[event.key === 'Home' ? 0 : list.length - 1]?.focus();
+    } else if (event.key === 'Escape' || event.key === 'Tab') {
+      if (event.key === 'Escape') event.preventDefault();
+      setOpen(false, event.key === 'Escape' ? 'button' : false);
+    }
+  });
+  languageList.addEventListener('click', (event) => {
+    const option = (event.target as Element).closest<HTMLButtonElement>('[data-locale]');
+    if (!option) return;
+    const locale = option.dataset.locale === 'en' ? 'en' : 'zh-CN';
     try {
       localStorage.setItem('v7-locale', locale);
     } catch {
       /* Current page still changes. */
     }
     applyLocale(locale);
+    setOpen(false, 'button');
+  });
+  document.addEventListener('click', (event) => {
+    if (!languageList.hidden && !languageMenu.contains(event.target as Node)) setOpen(false);
   });
 }
 applyLocale(currentLocale());

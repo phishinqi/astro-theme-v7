@@ -22,26 +22,27 @@ try {
   disabled.cms.enabled = false;
   const output = build('disabled', disabled);
   const html = fs.readFileSync(path.join(output, 'index.html'), 'utf8');
-  for (const module of ['friends', 'moments', 'timeline', 'roadmap', 'albums']) {
+  for (const module of ['friends', 'moments', 'timeline', 'roadmap', 'albums', 'photos']) {
     assert(!fs.existsSync(path.join(output, module, 'index.html')), `${module} route remains`);
     assert(!html.includes(`href="/${module}/"`), `${module} entry remains`);
   }
   assert(!fs.existsSync(path.join(output, 'admin/index.html')));
   assert(!html.includes('class="site-stats"'));
   const sitemap = fs.readFileSync(path.join(output, 'sitemap-0.xml'), 'utf8');
-  assert(!/\/(friends|moments|timeline|roadmap|albums|admin)\//.test(sitemap));
+  assert(!/\/(friends|moments|timeline|roadmap|albums|photos|admin)\//.test(sitemap));
+  assert(!html.includes('href="/admin/"'), 'editor link remains');
   const english = JSON.parse(original);
   english.locale = 'en';
   english.media.provider = 'r2';
-  english.media.workerURL = 'https://worker.example.com';
-  english.media.publicURL = 'https://img.example.com';
+  english.media.exifPrefill = false;
   const second = build('english-r2', english);
   const home = fs.readFileSync(path.join(second, 'index.html'), 'utf8');
   assert(home.includes('<html lang="en"'));
   assert(home.includes('Selected writing'));
   const admin = fs.readFileSync(path.join(second, 'admin/index.html'), 'utf8');
   assert(admin.includes('v7-r2'));
-  assert(admin.includes('https://worker.example.com'));
+  assert(admin.includes('"exifPrefill":false'));
+  assert(admin.includes('"auth_endpoint":"api/auth"'));
   console.log(
     'Verified: disabled modules/admin have no routes or entries; default English and optional R2 CMS configuration build successfully.',
   );

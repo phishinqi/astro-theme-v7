@@ -6,7 +6,10 @@ import AxeBuilder from '@axe-core/playwright';
 test('interface language persists at the same URL and search follows it', async ({ page }) => {
   await page.goto('/about/');
   await page.locator('#language-toggle').click();
+  await page.getByRole('menuitemradio', { name: 'English' }).click();
   await expect(page).toHaveURL(/\/about\/$/);
+  await expect(page.locator('#language-toggle')).toBeFocused();
+  await expect(page.locator('[data-language-code]')).toHaveText('EN');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('main h1')).toHaveText('About');
   await expect(page.locator('[data-locale-content="en"]')).toBeVisible();
@@ -16,8 +19,15 @@ test('interface language persists at the same URL and search follows it', async 
   await page.keyboard.press('Escape');
   await page.goto('/moments/');
   await expect(page.locator('main h1')).toHaveText('Moments');
-  await page.locator('#language-toggle').click();
+  // Keyboard: ArrowDown opens on the current language; ArrowUp moves; Enter chooses.
+  await page.locator('#language-toggle').focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('menuitemradio', { name: 'English' })).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('Enter');
   await expect(page.locator('main h1')).toHaveText('动态');
+  await expect(page.locator('[data-locale="zh-CN"]')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator('#language-options')).toBeHidden();
 });
 test('nested files retain URLs, descendants aggregate, and coauthors match metadata', async ({
   page,
@@ -39,12 +49,16 @@ test('cover variants and gallery keyboard interactions work', async ({ page }) =
   await page.goto('/posts/image-and-space/');
   await expect(page.locator('.article-cover img')).toHaveAttribute('srcset', /640w/);
   await page.goto('/albums/paper/');
-  const trigger = page.locator('[data-lightbox]').first();
+  const trigger = page.locator('[data-viewer-item]').first();
   await trigger.click();
-  await expect(page.locator('.lightbox')).toBeVisible();
+  await expect(page.locator('.viewer')).toBeVisible();
+  await expect(page.locator('.viewer-count')).toHaveText('1 / 7');
   await page.keyboard.press('ArrowRight');
+  await expect(page.locator('.viewer-count')).toHaveText('2 / 7');
   await page.keyboard.press('Escape');
-  await expect(trigger).toBeFocused();
+  await expect(page.locator('.viewer')).not.toBeVisible();
+  // Focus returns to the tile of the photo that was on screen.
+  await expect(page.locator('[data-viewer-item]').nth(1)).toBeFocused();
 });
 test('new pages have headings, mobile layouts and accessible controls', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
@@ -55,6 +69,7 @@ test('new pages have headings, mobile layouts and accessible controls', async ({
     '/roadmap/',
     '/albums/',
     '/albums/paper/',
+    '/photos/',
     '/authors/v7/',
   ]) {
     await page.goto(path);

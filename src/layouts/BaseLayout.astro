@@ -97,6 +97,7 @@ const crumbs = title
           event.viewTransition?.ready.catch(() => {});
           event.viewTransition?.finished.catch(() => {});
         };
+        document.documentElement.classList.add('js');
         window.addEventListener('pageswap', settleTransition);
         window.addEventListener('pagereveal', settleTransition);
         let theme;
