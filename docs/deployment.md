@@ -24,9 +24,27 @@
 npm install --global pnpm@12.5.1 && pnpm install --frozen-lockfile && pnpm build
 ```
 
-博客前台是纯静态部署，不需要 Astro Cloudflare adapter。可选写作后台另外使用 `worker/` 提供 GitHub OAuth；R2 模式复用该 Worker 提供图片接口，详见 [CMS 接入](cms.md)。`404.html` 用于 Pages 的缺失页面响应。无需添加将所有请求重写到首页的 SPA fallback。
+博客前台是纯静态部署，不需要 Astro Cloudflare adapter。`functions/` 目录由 Pages 自动部署为 Pages Functions，只处理 `/api/*`：GitHub 登录和可选的 R2 图片接口。`404.html` 用于 Pages 的缺失页面响应，不需要把所有请求重写到首页的 SPA fallback。
 
-生产构建需安装 devDependencies，因为后台资源从固定版本 Decap 分发包复制。关闭草稿分支的公开预览部署。
+生产构建需要安装 devDependencies，因为后台资源是从固定版本的 Decap 分发包复制的。请关闭草稿分支的公开预览部署。
+
+## 写作后台上线
+
+1. **创建 GitHub OAuth App**（GitHub → Settings → Developer settings → OAuth Apps → New）：
+   - Homepage URL：`https://你的域名`
+   - Authorization callback URL：`https://你的域名/api/callback`
+2. **在 Pages 项目中设置变量**（Settings → Variables and Secrets，生产环境）：
+   - `GITHUB_REPO`：`owner/repo`，与 `site.config.json` 的 `cms.repo` 一致
+   - `GITHUB_CLIENT_ID`：OAuth App 的 Client ID
+   - `GITHUB_CLIENT_SECRET`：Client Secret，**选择 Secret 类型**，不要写进仓库
+3. **仅 R2 模式**：创建 R2 bucket 并开启公开访问（自定义域名或 r2.dev），然后：
+   - 在 Settings → Bindings 添加 R2 绑定，变量名 `MEDIA`
+   - 设置变量 `PUBLIC_MEDIA_URL`，为 bucket 的公开地址，例如 `https://img.example.com`
+   - 把 `site.config.json` 的 `media.provider` 改为 `r2`
+4. 重新部署，打开 `https://你的域名/admin/`（或点页脚的“写作”），用 GitHub 登录。
+5. 第二位作者：在 GitHub 仓库 Settings → Collaborators 邀请对方并授予写权限，再在后台“作者”中添加资料。
+
+使用 `wrangler pages deploy` 而不是 Git 集成时，可以把 `wrangler.example.toml` 复制为 `wrangler.toml` 并填写；Secret 用 `wrangler pages secret put GITHUB_CLIENT_SECRET` 设置。文件一旦存在，Cloudflare 会以它为准，控制台里的同名配置会被覆盖。
 
 ## 上线验收
 
@@ -36,7 +54,9 @@ npm install --global pnpm@12.5.1 && pnpm install --frozen-lockfile && pnpm build
 - 图表主题切换、公式字体、文章图片没有 404。
 - 草稿/未来文章无法访问，索引中没有演示的 `UnpublishedSentinelSecret`。
 - `_headers` 生效；Pagefind 文件需及时重新验证，不能缓存为永不过期。
-- 自定义域名由站点所有者在 Cloudflare 配置；若与初次部署域名不同，修改 siteURL 后重新构建。
+- 自定义域名由站点所有者在 Cloudflare 配置；若与初次部署域名不同，修改 siteURL 后重新构建，并同步更新 OAuth App 的回调地址。
+- `/api/auth` 跳转到 GitHub；无写权限的账号登录后被拒绝。
+- `/albums/`、`/photos/` 图片正常懒加载，查看器可以打开，`#photo-ID` 分享链接能直接定位到图片。
 
 未来日期文章不会定时自行发布：在发布日期后触发新构建即可。该仓库的 GitHub Actions 只有验证，不会调用部署 API 或配置计划发布。
 

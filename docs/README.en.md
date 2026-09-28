@@ -4,7 +4,7 @@ A reading-focused Astro theme with warm paper colors, dark mode, Markdown/MDX, G
 
 ## Start
 
-Use Node 24.16.0 and pnpm 12.5.1. Run `pnpm install --frozen-lockfile` and `pnpm dev`. In another terminal run `pnpm cms:local`, then open `http://localhost:4321/admin/`. The local editor writes directly to the working directory; do not expose its proxy to the Internet.
+Use Node 24.16.0 and pnpm 12.5.1. Run `pnpm install --frozen-lockfile`, then `pnpm dev:cms` to start the site together with the local editor proxy, and open `http://localhost:4321/admin/` (`pnpm dev` alone serves only the site). On a deployed site the editor is linked as "Write" in the footer. The local editor writes directly to the working directory; do not expose its proxy to the Internet.
 
 Use `pnpm build` and `pnpm preview` to test real Pagefind search. Run `pnpm verify` for the complete checks.
 
@@ -24,20 +24,30 @@ Use explicit ISO dates with time zones. Draft and future content is excluded fro
 
 Decap is bundled locally and only loaded by the admin page. Plain Markdown supports source and visual editing. Complex markup, equations and Mermaid use source mode; MDX always uses source editing and is not executed inside the CMS preview.
 
-GitHub media is the default: uploads live in public/images/uploads. R2 is optional and uses the supplied Worker for GitHub OAuth and authorized media access. Set media.provider to github or r2. Switching providers does not migrate old images. Never put secrets in site.config.json.
+GitHub media is the default: uploads live in public/images/uploads. R2 is optional. Set media.provider to github or r2; switching does not migrate old images. Never put secrets in site.config.json.
 
-R2 accepts JPEG/PNG/WebP up to 20 MB and 40 megapixels, creates responsive WebP versions in the browser, and stores web-sized images rather than archival originals. Upload packages are limited to 16 MB. Public image URLs remain accessible even while their article is a draft. The authenticated media library supports selection and pagination; it intentionally has no object deletion control.
+Both modes process images in the browser before upload: JPEG/PNG/WebP up to 20 MB and 40 megapixels are re-encoded as WebP, which **discards EXIF, GPS and all other metadata**. Repository uploads become one image of at most 2400 px on the long edge; R2 receives 480/960/1600/2400 px variants. Only web versions are stored, so keep your originals elsewhere. For album photos, EXIF is read once to fill in blank fields (camera, lens, focal length, aperture, shutter, ISO, software, date). Values typed by hand are never overwritten; a checkbox turns this off per browser and `media.exifPrefill: false` turns it off site-wide.
 
-Local covers and galleries use Astro image optimization. Covers support focal positioning, captions and responsive variants. Galleries provide keyboard navigation, Escape and focus restoration. Images in ordinary Markdown retain their original URL; upload appropriately sized images.
+GitHub login and the R2 media API are Cloudflare Pages Functions under `functions/api/`, deployed with the site on the same origin. See [deployment](deployment.md) for the OAuth App, variables and the R2 binding, and [CMS integration](cms.md) for fields and workflow. The production workflow saves drafts to branches and merges on publication. The draft frontmatter flag is an additional exclusion rule: clear and save it before publishing. Local proxy mode does not emulate Git branches.
 
-See [CMS integration](cms.md) for OAuth, editorial workflow, Worker configuration and storage details. The production workflow saves drafts to branches and merges on publication. The draft frontmatter flag is an additional exclusion rule: clear and save it before publishing. Local proxy mode does not emulate Git branches.
+## Albums
+
+Albums live in `content/albums/`. Each photo can record its kind (photograph or artwork), title, caption, date, a plain-text location, tags from `data/photo-tags.json` (kept apart from article tags), author, license (overriding the site default in `media.license`), camera settings or the device, software and medium used to make it.
+
+- `/albums/` lists albums; `/albums/{slug}/` shows one as a masonry grid with tag filters.
+- `/photos/` gathers every photo, newest first; the tag filter is kept in `?tag=` so it can be shared.
+- Hovering enlarges an image slightly inside its tile and reveals its title and location.
+- Clicking opens a full-screen viewer with a details panel, wheel/double-click/pinch zoom, panning, swipe navigation, ← → and Esc, and `#photo-ID` links for single photos.
+- Images load lazily over their dominant colour.
+
+Article covers support focal positioning, captions and responsive variants. MDX can use `@components/Gallery.astro` for a simple grid that opens in the same viewer. Images in ordinary Markdown keep their original URL; upload appropriately sized images. The demonstration images are generated by `pnpm images:demo`; their camera details and places are fictional.
 
 ## Reading experience
 
-Readers switch Chinese/English interface text at the same URL. Articles are not translated; the About page selects its corresponding language. Search engines and no-JavaScript browsers receive the default locale. All new modules can be individually disabled, removing their routes and entry points.
+Readers switch Chinese/English interface text at the same URL from the globe menu in the header. To add a language, add a dictionary in `src/i18n/ui.ts` and list it in `languages`. Articles are not translated; the About page selects its corresponding language. Search engines and no-JavaScript browsers receive the default locale. All new modules can be individually disabled, removing their routes and entry points.
 
 Theme colors transition softly. Native cross-document View Transitions provide page fades where supported, with normal navigation elsewhere. Reduced-motion preferences disable nonessential animation. Statistics describe published content only; no visitor tracking is installed.
 
 ## License and delivery boundary
 
-Theme code and technical documentation use MIT. Article and editorial content is excluded; see [content licensing](../CONTENT-LICENSE.md). The provided implementation is local: real GitHub OAuth and R2 credentials, remote repository creation and deployment are not performed. Mocked service tests do not substitute for a live integration check.
+Theme code and technical documentation use MIT. Article and editorial content is excluded; see [content licensing](../CONTENT-LICENSE.md). The theme does not deploy a site or create an OAuth App or R2 bucket for you. Mocked service tests do not substitute for a live check with real accounts before launch.

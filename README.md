@@ -10,12 +10,10 @@
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm dev
-# 另开终端，启用本地网页编辑
-pnpm cms:local
+pnpm dev:cms   # 站点 + 本地写作后台；只看站点用 pnpm dev
 ```
 
-浏览博客：`http://localhost:4321/`。写作后台：`http://localhost:4321/admin/`。本地代理直接修改工作目录；不要把代理端口暴露到公网。搜索需要先构建，再运行 `pnpm preview`。
+浏览博客：`http://localhost:4321/`。写作后台：`http://localhost:4321/admin/`，线上从页脚的“写作”进入。本地代理直接修改工作目录；不要把代理端口暴露到公网。搜索需要先构建，再运行 `pnpm preview`。
 
 ## 内容目录
 
@@ -24,11 +22,12 @@ content/posts/            # Markdown / MDX 文章，递归加载
   tech/astro content.md   # 支持多级目录、中文与空格
   journal/quiet afternoon.md
 content/pages/            # about 等独立页面的正文
-content/moments/ timeline/ roadmap/ albums/   # 其他模块内容
-data/                     # 作者、分类、标签建议、友链
+content/albums/           # 相册（每个相册一个文件，图片信息写在其中）
+content/moments/ timeline/ roadmap/   # 其他模块内容
+data/                     # 作者、分类、文章标签建议、照片标签、友链
 site.config.json          # 文件与后台共用的站点配置
 src/                      # 模板、组件、样式、程序逻辑
-worker/                   # 可选的 GitHub OAuth 与 R2 图片服务
+functions/api/            # Cloudflare Pages Functions：GitHub 登录与可选 R2 图片接口
 ```
 
 **文件夹只负责整理。** 分类写在文章头部，公开地址由稳定 slug 决定，重命名或移动文件不会改变地址。MDX 组件通过 `@components/Note.astro` 等别名导入，不依赖目录深度。
@@ -72,17 +71,24 @@ featured: false
 
 顶部主要入口与“更多”菜单分开配置。演示默认开启全部模块；关闭 features 中的开关会移除模块页面、导航入口、首页预览及后台入口。全站保留普通文章、分类、标签、归档和作者页。
 
-读者可以在同一个 URL 切换中英文界面，选择保存在本地。文章不翻译，关于页显示对应语言版本。搜索引擎和无 JavaScript 浏览器读取站点默认语言。更改默认语言时也要检查你自己的本地化配置文案。
+读者用页头的语言菜单（地球图标）在同一个 URL 切换中英文界面，选择保存在本地。增加语言时，在 `src/i18n/ui.ts` 添加词典并在 `languages` 中登记。文章不翻译，关于页显示对应语言版本。搜索引擎和无 JavaScript 浏览器读取站点默认语言。更改默认语言时也要检查你自己的本地化配置文案。
 
-## 图片与画廊
+## 图片与相册
 
-`media.provider` 支持 `github`（默认）和 `r2` 二选一。GitHub 模式把上传放进 `public/images/uploads/`；R2 模式使用配套受保护 Worker。具体限制与接入步骤见 [CMS 文档](docs/cms.md)。切换模式不会自动搬迁已有图片。
+`media.provider` 支持 `github`（默认）和 `r2` 二选一。两种模式上传前都会在浏览器里压缩为 WebP 并**移除 EXIF、GPS 等全部元数据**，只保存网页版本，原图请自行归档。详见 [CMS 文档](docs/cms.md)。
 
-文章封面使用 `cover: { src, alt, width, height, focal?, caption?, srcset? }`；focal 为 0–100% 的两轴焦点，默认 `50% 50%`。封面支持列表缩略图与详情展示。未设置封面时维持文字布局。
+相册写在 `content/albums/`，每张图片可以记录类型（照片 / 创作）、标题、说明、日期、地点、标签、作者、许可，以及相机参数或创作设备。后台上传时会用 EXIF 自动填写空白的相机参数和日期，可以随时关闭。
 
-MDX 可导入 `@components/Gallery.astro`，传入包含 src、alt、width、height 和可选 caption 的 images 数组。独立相册写在 `content/albums/`。图库支持点击放大、左右键和 Esc；关闭后焦点返回图片。
+- `/albums/`：相册封面列表。
+- `/albums/{slug}/`：瀑布流展示，可以按标签筛选。
+- `/photos/`：所有相册的图片按时间汇总，按标签筛选，筛选条件写在 `?tag=` 里，可以分享。
+- 鼠标悬停时图片在格子内轻微放大，并显示标题与地点。
+- 点击进入全屏查看器：信息面板、滚轮 / 双击 / 双指缩放、拖动、手机滑动切换、键盘 ← → Esc、`#photo-ID` 分享链接。
+- 图片懒加载，加载前显示该图的主色。
 
-本地栅格封面和画廊在构建阶段生成响应式 WebP；R2 在上传时生成网页变体，不保存摄影原图。普通 Markdown 图片仍使用所写 URL，请避免直接引用超大原图。
+文章封面使用 `cover: { src, alt, width, height, focal?, caption?, srcset? }`；focal 为 0–100% 的两轴焦点，默认 `50% 50%`。MDX 可导入 `@components/Gallery.astro` 插入网格图组，点开后使用同一个查看器。普通 Markdown 图片仍使用所写 URL，请避免直接引用超大原图。
+
+演示图片由 `pnpm images:demo` 生成，设备与地点是虚构值；替换演示相册后可以删除 `public/images/albums/`。
 
 ## 功能页面
 
@@ -90,10 +96,10 @@ MDX 可导入 `@components/Gallery.astro`，传入包含 src、alt、width、hei
 - `/moments/`：文字、图片和链接组成的短动态；首页显示最近三条。
 - `/timeline/`：按时间记录已发生的里程碑。
 - `/roadmap/`：planned、active、done 三种状态。
-- `/albums/`：相册列表与相册详情。
+- `/albums/`、`/photos/`：相册与全部照片，见上文。
 - `/authors/{id}/`：作者介绍与文章分页。
 
-新模块 Markdown 通用字段是 title、slug、date、draft；相册与动态可设置 images，路线图可设置 status。模块正文与文章同样排除草稿及未来条目。
+新模块 Markdown 通用字段是 title、slug、date、draft；动态可设置 images，路线图可设置 status，相册字段见 [CMS 文档](docs/cms.md#相册)。模块正文与文章同样排除草稿及未来条目。
 
 统计仅计算公开内容，不采集访客行为。SEO 包括 canonical、分享元信息、多作者结构化数据、RSS、robots 与 sitemap。部署前必须把默认 `https://example.com` 换成你的根域名，主题不预设个人域名。
 
@@ -104,7 +110,7 @@ pnpm exec playwright install chromium
 pnpm verify
 ```
 
-verify 执行类型、lint、格式、单元测试、生产构建和浏览器测试。单元测试覆盖发布规则、分类关系、作者、CMS 配置和 Worker 授权；浏览器测试覆盖搜索、交互、图片、语言、无障碍与链接。示例内容测试仍预期 12 篇公开文章，替换示例后需调整相应查询和断言。
+verify 执行类型、lint、格式、单元测试、生产构建和浏览器测试。单元测试覆盖发布规则、分类关系、作者、相册字段与许可、EXIF 解析、CMS 配置和登录 / 图片接口授权；浏览器测试覆盖搜索、交互、瀑布流、查看器、上传去除 EXIF、语言菜单、无障碍与链接。示例内容测试仍预期 12 篇公开文章，替换示例后需调整相应查询和断言。
 
 主题切换采用柔和颜色过渡；页面切换采用原生文档 View Transitions，浏览器不支持时正常跳转。所有非必要动画遵守减少动态效果偏好。
 
@@ -112,4 +118,4 @@ verify 执行类型、lint、格式、单元测试、生产构建和浏览器测
 
 主题代码和技术文档采用 [MIT](LICENSE)。文章、关于页和其他编辑内容不纳入代码许可，详见 [内容许可](CONTENT-LICENSE.md)。示例不陈述真实作者经历。
 
-本轮没有创建远程仓库、部署网站、连接真实 GitHub OAuth 或上传 R2。外部服务接入需要使用者配置，并在上线前进行真实账号联调。
+主题不部署网站、不创建 OAuth App 或 R2 bucket。外部服务接入需要使用者按[部署说明](docs/deployment.md)配置，并在上线前用真实账号联调。
