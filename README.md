@@ -20,11 +20,11 @@ pnpm cms:local
 ## 内容目录
 
 ```text
-post/                     # Markdown / MDX 文章，递归加载
+content/posts/            # Markdown / MDX 文章，递归加载
   tech/astro content.md   # 支持多级目录、中文与空格
   journal/quiet afternoon.md
-pages/                    # about 等独立页面的正文
-content/                  # moments / timeline / roadmap / albums
+content/pages/            # about 等独立页面的正文
+content/moments/ timeline/ roadmap/ albums/   # 其他模块内容
 data/                     # 作者、分类、标签建议、友链
 site.config.json          # 文件与后台共用的站点配置
 src/                      # 模板、组件、样式、程序逻辑

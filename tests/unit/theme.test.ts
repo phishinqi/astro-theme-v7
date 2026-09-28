@@ -68,7 +68,7 @@ describe('theme content contract', () => {
       fields: Array<{ name: string; widget: string }>;
     }>;
     expect(posts).toHaveLength(2);
-    expect(posts.every((c) => c.folder === 'post')).toBe(true);
+    expect(posts.every((c) => c.folder === 'content/posts')).toBe(true);
     expect(posts[1]?.fields.find((f) => f.name === 'body')?.widget).toBe('text');
   });
   it('requires valid module dates, statuses and gallery descriptions', () => {

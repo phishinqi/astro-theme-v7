@@ -5,11 +5,11 @@ import categories from '../data/categories.json' with { type: 'json' };
 const [slug, directory = '', title = slug] = process.argv.slice(2);
 if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))
   throw new Error('Usage: pnpm new:post <stable-slug> [folder] [title]');
-const root = resolve('post');
+const root = resolve('content/posts');
 const path = resolve(root, directory, slug + '.md');
 const child = relative(root, path);
 if (child.startsWith('..') || isAbsolute(child))
-  throw new Error('The article must stay inside post/.');
+  throw new Error('The article must stay inside content/posts/.');
 await mkdir(dirname(path), { recursive: true });
 await writeFile(
   path,

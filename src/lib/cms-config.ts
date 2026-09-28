@@ -160,7 +160,7 @@ export function cmsConfig() {
       ...(['md', 'mdx'] as const).map((extension) => ({
         name: `posts-${extension}`,
         label: extension === 'md' ? '文章 · Markdown' : '文章 · MDX 源码',
-        folder: 'post',
+        folder: 'content/posts',
         create: true,
         summary: '{{title}}',
         extension,
@@ -177,7 +177,7 @@ export function cmsConfig() {
         files: ['zh', 'en'].map((lang) => ({
           name: `about-${lang}`,
           label: `关于 · ${lang}`,
-          file: `pages/about.${lang}.mdx`,
+          file: `content/pages/about.${lang}.mdx`,
           fields: [body(true)],
         })),
       },

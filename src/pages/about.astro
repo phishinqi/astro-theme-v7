@@ -3,12 +3,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import { ui } from '../i18n/ui';
 import { siteConfig } from '../site.config';
-const pages = import.meta.glob<{ default: AstroComponentFactory }>('../../pages/about.*.mdx', {
+const pages = import.meta.glob<{ default: AstroComponentFactory }>('../../content/pages/about.*.mdx', {
   eager: true,
 });
 const available = {
-  'zh-CN': pages['../../pages/about.zh.mdx']?.default,
-  en: pages['../../pages/about.en.mdx']?.default,
+  'zh-CN': pages['../../content/pages/about.zh.mdx']?.default,
+  en: pages['../../content/pages/about.en.mdx']?.default,
 };
 const fallbackLocale = available[siteConfig.locale]
   ? siteConfig.locale

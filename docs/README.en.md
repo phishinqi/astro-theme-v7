@@ -10,7 +10,7 @@ Use `pnpm build` and `pnpm preview` to test real Pagefind search. Run `pnpm veri
 
 ## Content and settings
 
-Articles live in root-level `post/`, including nested folders, spaces and Unicode filenames. Independent editorial pages live in `pages/`. Moments, timeline, roadmap and albums live in `content/`. Application code stays under `src/`.
+All editorial content lives in `content/`: articles in `content/posts/` (nested folders, spaces and Unicode filenames are fine), independent pages such as About in `content/pages/`, and moments, timeline, roadmap and albums in their own subfolders. Application code stays under `src/`.
 
 Folder organization is independent of frontmatter categories. Public article URLs use the stable slug. Use `pnpm new:post stable-slug folder "Title"` to create a draft. MDX component imports can use `@components/Note.astro` and `@components/Gallery.astro` regardless of folder depth.
 

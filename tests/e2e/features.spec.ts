@@ -80,7 +80,7 @@ test('permalink uses canonical origin and stays stable', async ({ page, context 
 for (const extension of ['md', 'mdx']) {
   test(`local CMS saves ${extension} without losing article source`, async ({ page }) => {
     const slug = `cms-test-${randomUUID()}`;
-    const path = `post/${slug}.${extension}`;
+    const path = `content/posts/${slug}.${extension}`;
     const body =
       extension === 'mdx'
         ? 'import Note from \'@components/Note.astro\';\n\n<Note title="Test">Keep this component.</Note>\n'

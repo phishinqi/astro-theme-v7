@@ -6,7 +6,7 @@ import { moduleSchema } from './lib/module-schema';
 const posts = defineCollection({
   loader: glob({
     pattern: '**/*.{md,mdx}',
-    base: './post',
+    base: './content/posts',
     // File identity must not depend on slug: duplicate slugs must remain detectable.
     generateId: ({ entry }) => entry.replace(/\.(md|mdx)$/, ''),
   }),
