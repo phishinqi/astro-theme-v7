@@ -11,8 +11,8 @@ if (!CMS) {
   throw new Error('Missing local Decap bundle');
 }
 // The local proxy is only enabled on loopback; published sites always use GitHub authentication.
-config.local_backend =
-  config.local_backend && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+// Keep an explicit { url } setting intact: `setting && isLoopback` would collapse it to `true`.
+if (!['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) config.local_backend = false;
 // GitHub OAuth runs as a Pages Function on this same origin unless cms.authURL points elsewhere.
 config.backend.base_url ||= location.origin;
 const Rich = CMS.getWidget('richtext');

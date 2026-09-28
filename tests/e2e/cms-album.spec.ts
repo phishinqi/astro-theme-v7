@@ -2,13 +2,16 @@ import { test, expect } from '@playwright/test';
 import sharp from 'sharp';
 import { readdir, readFile, writeFile, unlink } from 'node:fs/promises';
 import { tiff, withExif } from '../fixtures/exif';
+import { expectOwnProxy } from '../fixtures/cms';
 
 const album = 'content/albums/paper.md';
 const uploads = 'public/images/uploads';
 
 test('album uploads are compressed, stripped of EXIF and prefill blank fields', async ({
   page,
+  request,
 }) => {
+  await expectOwnProxy(request);
   const photo = withExif(
     new Uint8Array(
       await sharp({ create: { width: 3000, height: 2000, channels: 3, background: '#964630' } })
