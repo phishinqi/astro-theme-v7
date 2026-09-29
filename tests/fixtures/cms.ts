@@ -14,7 +14,8 @@ import { test } from '@playwright/test';
  * body has awaited anything.
  */
 export function skipWithoutProxy(): void {
-  test.beforeEach(async (_fixtures, testInfo) => {
+  test.beforeEach(async ({ browserName }, testInfo) => {
+    void browserName;
     if (testInfo.title.startsWith('local CMS ') || testInfo.title.startsWith('album uploads')) {
       if (!(await proxyResponds())) {
         testInfo.skip(true, 'No Decap proxy is running; local CMS editing is not exercised.');
