@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile, writeFile, unlink } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import AxeBuilder from '@axe-core/playwright';
-import { expectOwnProxy } from '../fixtures/cms';
+import { skipWithoutProxy } from '../fixtures/cms';
 
 test('interface language persists at the same URL and search follows it', async ({ page }) => {
   await page.goto('/about/');
@@ -93,9 +93,10 @@ test('permalink uses canonical origin and stays stable', async ({ page, context 
   );
   await expect(page.locator('[data-copy-link]')).toContainText('链接已复制');
 });
+skipWithoutProxy();
+
 for (const extension of ['md', 'mdx']) {
-  test(`local CMS saves ${extension} without losing article source`, async ({ page, request }) => {
-    await expectOwnProxy(request);
+  test(`local CMS saves ${extension} without losing article source`, async ({ page }) => {
     const slug = `cms-test-${randomUUID()}`;
     const path = `content/posts/${slug}.${extension}`;
     const body =

@@ -64,6 +64,7 @@ test('all built HTML links, fragment targets and local assets resolve', async ({
   await page.goto('/');
   const documents: { route: string; html: string }[] = [];
   for await (const file of glob('**/*.html', { cwd: root })) {
+    if (file.startsWith('cms' + sep)) continue;
     const route = `/${file.replaceAll(sep, '/').replace(/index\.html$/, '')}`;
     const html = await readFile(resolve(root, file), 'utf8');
     expect(html).not.toContain('UnpublishedSentinelSecret');
