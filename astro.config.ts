@@ -6,7 +6,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import remarkMermaid from './src/lib/remark-mermaid';
+import remarkMermaid, { diagramLanguages } from './src/lib/remark-mermaid';
 import { siteConfig } from './src/site.config';
 
 export default defineConfig({
@@ -25,7 +25,7 @@ export default defineConfig({
   ],
   vite: { plugins: [tailwindcss()] },
   markdown: {
-    syntaxHighlight: { type: 'shiki', excludeLangs: ['mermaid'] },
+    syntaxHighlight: { type: 'shiki', excludeLangs: [...diagramLanguages] },
     shikiConfig: {
       themes: { light: 'github-light-high-contrast', dark: 'github-dark' },
       defaultColor: false,

@@ -100,8 +100,8 @@ test('math, lazy diagrams, theme rerender and clipboard', async ({ page, context
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/posts/math-and-diagrams/');
   await expect(page.locator('.katex').first()).toBeVisible();
-  await page.locator('.mermaid-figure').scrollIntoViewIfNeeded();
-  const svg = page.locator('.mermaid-output svg');
+  await page.locator('.diagram-mermaid').scrollIntoViewIfNeeded();
+  const svg = page.locator('.diagram-mermaid .diagram-output svg');
   await expect(svg).toBeVisible({ timeout: 20000 });
   const oldId = await svg.getAttribute('id');
   await page.locator('#theme-toggle').click();
@@ -115,13 +115,48 @@ test('math, lazy diagrams, theme rerender and clipboard', async ({ page, context
   expect(errors).toEqual([]);
 });
 
-test('diagram load failure preserves readable source', async ({ page }) => {
+test('a music score renders, repaints on theme change and needs no other diagram', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/posts/math-and-diagrams/');
+  // Only the score's own renderer should be fetched if the diagram is left off screen.
+  const requested: string[] = [];
+  page.on('request', (r) => requested.push(r.url()));
+  const score = page.locator('.diagram-abc');
+  await score.scrollIntoViewIfNeeded();
+  const svg = score.locator('svg');
+  await expect(svg).toBeVisible({ timeout: 20000 });
+  await expect(score.locator('text').first()).toContainText('示例小曲');
+  await expect(score.locator('path').first()).toBeAttached();
+  await expect(score.locator('details')).not.toHaveAttribute('open', '');
+  // Stroke and fill come from currentColor, so the score follows the theme with no extra CSS.
+  const lightInk = await score
+    .locator('text')
+    .first()
+    .evaluate((el) => getComputedStyle(el).fill);
+  await page.locator('#theme-toggle').click();
+  await expect
+    .poll(() =>
+      score
+        .locator('text')
+        .first()
+        .evaluate((el) => getComputedStyle(el).fill),
+    )
+    .not.toBe(lightInk);
+  await expect(svg).toBeVisible();
+  expect(requested.some((u) => /abcjs.*\.js/.test(u))).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test('diagram load failures keep their source readable', async ({ page }) => {
   await page.route('**/_astro/mermaid*.js', (route) => route.abort());
   await page.goto('/posts/math-and-diagrams/');
-  await page.locator('.mermaid-figure').scrollIntoViewIfNeeded();
-  await expect(page.locator('.diagram-error')).toBeVisible({ timeout: 15000 });
-  await expect(page.locator('.mermaid-source pre')).toContainText('flowchart LR');
-  await expect(page.locator('.mermaid-source pre')).toBeVisible();
+  await page.locator('.diagram-mermaid').scrollIntoViewIfNeeded();
+  await expect(page.locator('.diagram-mermaid .diagram-error')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('.diagram-mermaid .diagram-source pre')).toContainText('flowchart LR');
+  await expect(page.locator('.diagram-mermaid .diagram-source pre')).toBeVisible();
 });
 
 test('no JavaScript keeps content, navigation, TOC and diagram source', async ({ browser }) => {
@@ -132,7 +167,9 @@ test('no JavaScript keeps content, navigation, TOC and diagram source', async ({
   const page = await context.newPage();
   await page.goto('/posts/math-and-diagrams/');
   await expect(page.locator('#article-body')).toContainText('线性模型');
-  await expect(page.locator('code[data-mermaid-source]')).toContainText('flowchart LR');
+  await expect(page.locator('code[data-diagram-lang="mermaid"]')).toContainText('flowchart LR');
+  // Without JavaScript the score stays readable as its ABC source.
+  await expect(page.locator('code[data-diagram-lang="abc"]')).toContainText('X:1');
   await expect(page.locator('#theme-toggle')).not.toBeVisible();
   await page.locator('#mobile-nav summary').click();
   await page.locator('.mobile-menu').getByRole('link', { name: '分类', exact: true }).click();
@@ -155,8 +192,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
     for (const path of ['/', '/posts/long-lines/', '/posts/math-and-diagrams/', '/search/']) {
       await page.goto(path);
       if (path.includes('math')) {
-        await page.locator('.mermaid-figure').scrollIntoViewIfNeeded();
-        await expect(page.locator('.mermaid-output svg')).toBeVisible({ timeout: 20000 });
+        await page.locator('.diagram').first().scrollIntoViewIfNeeded();
+        await expect(page.locator('.diagram-output svg').first()).toBeVisible({ timeout: 20000 });
       }
       const results = await new AxeBuilder({ page }).analyze();
       expect(
@@ -171,8 +208,8 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     await page.emulateMedia({ reducedMotion });
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/posts/math-and-diagrams/');
-    await page.locator('.mermaid-figure').scrollIntoViewIfNeeded();
-    const svg = page.locator('.mermaid-output svg');
+    await page.locator('.diagram-mermaid').scrollIntoViewIfNeeded();
+    const svg = page.locator('.diagram-mermaid .diagram-output svg');
     await expect(svg).toBeVisible({ timeout: 20000 });
     const dimensions = await svg.evaluate((element) => {
       const graph = element as SVGSVGElement;
@@ -192,7 +229,7 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
-    const output = page.locator('.mermaid-output');
+    const output = page.locator('.diagram-mermaid .diagram-output');
     await output.focus();
     await page.keyboard.press('ArrowRight');
     await expect.poll(() => output.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);

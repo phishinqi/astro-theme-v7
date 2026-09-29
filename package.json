@@ -33,6 +33,7 @@
     "@astrojs/sitemap": "3.7.4",
     "@tabler/icons-react": "3.48.0",
     "@tailwindcss/vite": "4.3.3",
+    "abcjs": "6.7.1",
     "astro": "7.3.5",
     "gsap": "3.15.0",
     "katex": "0.18.9",

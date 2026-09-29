@@ -61,7 +61,7 @@ featured: false
 - `draft: true` 和未来文章不会生成页面，也不进入 RSS、搜索和站点地图。定时内容到期后需重新构建。
 - 日期写带时区的 ISO 字符串；纯日期按 UTC 零时处理。
 - 普通 Markdown 可在源码与可视化模式间切换；复杂公式、Mermaid、HTML 和 MDX 使用源码模式。后台不执行自定义 MDX 代码。
-- 代码高亮、复制、目录、KaTeX 和延迟加载 Mermaid 保留。文章内容必须是你信任的源码。
+- 代码高亮、复制、目录、KaTeX 和延迟加载图表保留。文章内容必须是你信任的源码。
 
 ## 配置
 
@@ -102,6 +102,30 @@ featured: false
 新模块 Markdown 通用字段是 title、slug、date、draft；动态可设置 images，路线图可设置 status，相册字段见 [CMS 文档](docs/cms.md#相册)。模块正文与文章同样排除草稿及未来条目。
 
 统计仅计算公开内容，不采集访客行为。SEO 包括 canonical、分享元信息、多作者结构化数据、RSS、robots 与 sitemap。部署前必须把默认 `https://example.com` 换成你的根域名，主题不预设个人域名。
+
+## 图表与乐谱
+
+文章里的图表写在围栏代码块里，语言名决定用什么渲染。全部**按需加载**：文章里没有这种图，就一个字节都不下载；滚到附近才开始渲染；渲染失败时保留源码，可以展开查看。
+
+| 语言      | 用途                           | 渲染器  |
+| --------- | ------------------------------ | ------- |
+| `mermaid` | 流程图、时序图、甘特图、状态图 | Mermaid |
+| `abc`     | 五线谱（ABC 记谱法）           | abcjs   |
+
+````text
+```abc
+X:1
+T:曲名
+M:4/4
+L:1/4
+K:D
+A2 F2 | G2 E2 | D2 F2 | E4 |
+```
+````
+
+图表跟随明暗主题重画。关掉 JavaScript 时，代码块仍是可读的源码。
+
+新增一种图表语言：在 `src/lib/remark-mermaid.ts` 的 `diagramLanguages` 里加语言名（这样 Shiki 不会把它当普通代码高亮），再在 `src/scripts/article.ts` 的 `renderers` 里加一个渲染函数，懒加载那条链路是共用的。
 
 ## 验证
 

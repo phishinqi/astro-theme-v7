@@ -900,32 +900,38 @@ h3:hover .heading-anchor,
 .desktop-toc {
   display: none;
 }
-.mermaid-figure {
+.diagram {
   padding: 1.1rem;
   border: 1px solid var(--line);
   border-radius: 4px;
   margin-block: 1.7rem;
 }
-.mermaid-output {
+.diagram-output {
   overflow-x: auto;
   text-align: center;
 }
-.mermaid-output svg {
+.diagram-output svg {
   max-width: none;
   height: auto;
   margin-inline: auto;
 }
-.mermaid-source {
+/* Music scores are drawn at a fixed staff width, so they scale instead of scrolling. */
+.diagram-abc .diagram-output svg {
+  max-width: 100%;
+  width: 100%;
+}
+.diagram-source {
   font-family: var(--interface-font);
   font-size: 0.75rem;
   color: var(--muted);
 }
-.mermaid-source summary {
+.diagram-source summary {
   margin-top: 1rem;
 }
-.mermaid-source pre {
+.diagram-source pre {
   font-size: 0.75rem;
 }
+/* abcjs paints with fill/stroke=currentColor, so scores follow the theme without extra rules. */
 .diagram-error {
   font-family: var(--interface-font);
   font-size: 0.8rem;
@@ -1256,7 +1262,7 @@ kbd {
     transform: none;
   }
   /* Scope to rendered diagrams: global overrides break Mermaid measurement. */
-  .mermaid-output * {
+  .diagram-output * {
     transition: none !important;
     animation: none !important;
   }
