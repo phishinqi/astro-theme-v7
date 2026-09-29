@@ -106,7 +106,7 @@ for (const extension of ['md', 'mdx']) {
     await writeFile(path, content, { flag: 'wx' });
     try {
       await page.goto('/admin/');
-      await page.getByRole('button', { name: 'Login', exact: true }).click();
+      await page.getByRole('button', { name: /^(Login|登录)$/ }).click();
       if (extension === 'mdx')
         await page.getByText('文章 · MDX 源码', { exact: true }).first().click();
       await page.getByText(slug, { exact: true }).click();
@@ -114,13 +114,16 @@ for (const extension of ['md', 'mdx']) {
         .getByRole('textbox', { name: '摘要', exact: true })
         .fill('Updated integration test');
       if (extension === 'md') {
-        await expect(page.getByText('Rich Text', { exact: true })).toBeVisible();
-        await page.getByText('Markdown', { exact: true }).click();
+        await expect(page.getByText(/Rich Text|富文本/).first()).toBeVisible();
+        await page
+          .getByText(/^Markdown$/)
+          .first()
+          .click();
       } else {
-        await expect(page.getByText('Rich Text', { exact: true })).toHaveCount(0);
+        await expect(page.getByText(/Rich Text|富文本/)).toHaveCount(0);
       }
-      await page.getByRole('button', { name: 'Publish', exact: true }).click();
-      await page.getByText('Publish now', { exact: true }).click();
+      await page.getByRole('button', { name: /^(Publish|发布)$/ }).click();
+      await page.getByText(/^(Publish now|立即发布)$/).click();
       await expect.poll(async () => readFile(path, 'utf8')).not.toBe(content);
       const saved = await readFile(path, 'utf8');
       expect(saved).toContain(`slug: ${slug}`);

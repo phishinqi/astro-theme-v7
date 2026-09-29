@@ -11,6 +11,14 @@
 
 编辑器预览使用 Decap 渲染，不等同完整 Astro 页面。不要通过可视化编辑器重新序列化未经验证的复杂 Markdown。
 
+## 界面语言与外观
+
+后台界面是简体中文。语言由 `src/lib/cms-config.ts` 的 `locale` 决定；Decap 自带的中文包比它自身版本旧，缺少批注、列表控件、图片多选等 47 条文案，这些由 `public/admin/locale.js` 补齐，所以不会再出现中英混排。要换成别的语言，把 `locale` 改成 `de`、`ja` 等 `decap-cms-locales` 里的名字即可，缺的条目会回退到英文。
+
+外观由 `public/admin/theme.css` 覆盖，沿用博客的纸白、陶土色与衬线标题。**注意**：Decap 用的是构建时生成的哈希类名，没有稳定的样式钩子，这份样式靠元素结构和它自己的 CSS 变量选择器实现，Decap 升级后可能需要跟着调整。自定义控件（相册图片列表、R2 图片库）用的是自己的类名（`v7-*`），不受影响。
+
+`scripts/prepare-admin.mjs` 在构建时把 Decap 分发包和全部语言包复制到 `public/admin/vendor/`，该目录不提交。
+
 ## 多位作者
 
 1. 每位作者都需要一个 GitHub 账号，并对站点仓库有**写权限**（仓库 Settings → Collaborators 邀请）。
@@ -99,3 +107,4 @@ GitHub 登录与 R2 图片接口由 `functions/api/` 提供，和站点同域名
 - 切换图片存储不会搬迁旧文件；本地 URL 与外部 URL 可以共存。
 - 作者、分类和照片标签 ID 应保持稳定；删除前先清理引用。分类父子关系不能成环。
 - Decap 使用固定依赖版本并在本地复制其资源；普通博客页面不加载 CMS。
+- 后台样式依赖 Decap 的类名结构，升级 Decap 后请重新检查 `public/admin/theme.css`。

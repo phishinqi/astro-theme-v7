@@ -87,9 +87,14 @@ describe('editor configuration', () => {
     expect(data.files!.find((f) => f.name === 'photoTags')?.file).toBe('data/photo-tags.json');
   });
   it('authenticates through the same-origin Pages Function', () => {
-    const backend = cmsConfig().backend as { auth_endpoint: string; base_url: string };
-    expect(backend.auth_endpoint).toBe('api/auth');
-    expect(backend.base_url).toBe('');
-    expect(adminSettings()).toEqual({ provider: 'github', exifPrefill: true });
+    const config = cmsConfig() as { backend: { auth_endpoint: string; base_url: string } };
+    expect(config.backend.auth_endpoint).toBe('api/auth');
+    expect(config.backend.base_url).toBe('');
+    expect(adminSettings()).toEqual({ provider: 'github', exifPrefill: true, locale: 'zh_Hans' });
+  });
+  it('registers the interface language the config asks for', () => {
+    // Decap reads its `locale` from the config; public/admin/locale.js supplies the phrases.
+    expect((cmsConfig() as { locale: string }).locale).toBe('zh_Hans');
+    expect(adminSettings().locale).toBe((cmsConfig() as { locale: string }).locale);
   });
 });

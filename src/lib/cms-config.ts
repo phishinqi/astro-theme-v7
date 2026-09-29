@@ -227,10 +227,17 @@ function settingsFields(value: Record<string, unknown>): unknown[] {
 }
 /** Settings the admin script needs that are not part of Decap's own configuration. */
 export function adminSettings() {
-  return { provider: siteConfig.media.provider, exifPrefill: siteConfig.media.exifPrefill };
+  return {
+    provider: siteConfig.media.provider,
+    exifPrefill: siteConfig.media.exifPrefill,
+    // public/admin/locale.js registers this language before the editor starts; Decap's own
+    // zh_Hans file is older than the bundle, so registerLocale merges the missing keys in.
+    locale: 'zh_Hans',
+  };
 }
 export function cmsConfig() {
   return {
+    locale: adminSettings().locale,
     backend: {
       name: 'github',
       repo: siteConfig.cms.repo,

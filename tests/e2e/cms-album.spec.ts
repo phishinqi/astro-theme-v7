@@ -38,12 +38,12 @@ test('album uploads are compressed, stripped of EXIF and prefill blank fields', 
   const before = new Set(await readdir(uploads).catch(() => []));
   try {
     await page.goto('/admin/');
-    await page.getByRole('button', { name: 'Login', exact: true }).click();
+    await page.getByRole('button', { name: /^(Login|登录)$/ }).click();
     await page.goto('/admin/#/collections/albums/entries/paper');
     await expect(page.getByText('上传后从 EXIF 自动填入空白字段', { exact: false })).toBeVisible();
-    await page.getByRole('button', { name: /Add 图片/ }).click();
+    await page.getByRole('button', { name: /Add 图片|新增图片/ }).click();
     await page
-      .getByRole('button', { name: /Choose an image/i })
+      .getByRole('button', { name: /Choose an image|选择图片/i })
       .last()
       .click();
     await page.locator('input[type=file]').setInputFiles({
@@ -52,13 +52,13 @@ test('album uploads are compressed, stripped of EXIF and prefill blank fields', 
       buffer: Buffer.from(photo),
     });
     await expect(page.getByText(/^evening-walk-[a-z0-9]{6}\.webp$/)).toBeVisible();
-    await page.getByRole('button', { name: 'Choose selected' }).click();
+    await page.getByRole('button', { name: /Choose selected|选用已选中项目/ }).click();
     await expect(page.locator('input[id^="camera-field"]').last()).toHaveValue('Demo Camera X1');
     await expect(page.locator('input[id^="iso-field"]').last()).toHaveValue('400');
     await expect(page.locator('input[id^="width-field"]').last()).toHaveValue('2400');
     await page.locator('input[id^="alt-field"]').last().fill('A plain terracotta test image');
-    await page.getByRole('button', { name: 'Publish', exact: true }).click();
-    await page.getByText('Publish now', { exact: true }).click();
+    await page.getByRole('button', { name: /^(Publish|发布)$/ }).click();
+    await page.getByText(/^(Publish now|立即发布)$/).click();
     await expect.poll(() => readFile(album, 'utf8')).toContain('A plain terracotta test image');
     const saved = await readFile(album, 'utf8');
     expect(saved).toMatch(/src: \/images\/uploads\/evening-walk-[a-z0-9]{6}\.webp/);

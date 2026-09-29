@@ -1,5 +1,6 @@
 import { prepareImage, uploadName, RASTER_TYPES } from './image-pipeline.js';
 import { prefill, isImmutableMap } from './prefill.js';
+import { registerLocale } from './locale.js';
 const CMS = window.CMS;
 const loading = document.getElementById('cms-loading');
 const config = JSON.parse(document.getElementById('cms-config').textContent);
@@ -80,15 +81,24 @@ const ImagePreview = window.createClass({
     const src = value?.get?.('src');
     if (!src) return null;
     const asset = this.props.getAsset?.(src);
+    const entry = uploaded.get(src);
+    const caption = value.get('title') || value.get('caption') || '';
     return window.h(
       'figure',
-      { style: { margin: '1em 0' } },
-      window.h('img', {
-        src: asset ? String(asset) : src,
-        alt: value.get('alt') || '',
-        style: { maxWidth: '100%' },
-      }),
-      window.h('figcaption', {}, value.get('title') || value.get('caption') || ''),
+      { className: 'v7-photo' },
+      window.h('img', { src: asset ? String(asset) : src, alt: value.get('alt') || '' }),
+      window.h(
+        'figcaption',
+        {},
+        caption || (value.get('alt') || '').slice(0, 60),
+        entry
+          ? window.h(
+              'span',
+              { className: 'v7-photo-size' },
+              `${value.get('width') ?? entry.width} × ${value.get('height') ?? entry.height}`,
+            )
+          : null,
+      ),
     );
   },
 });
@@ -169,19 +179,11 @@ const MediaList = window.createClass({
   render() {
     return window.h(
       'div',
-      {},
+      { className: 'v7-media-list' },
       this.canPrefill() &&
         window.h(
           'label',
-          {
-            style: {
-              display: 'flex',
-              gap: '8px',
-              alignItems: 'center',
-              margin: '12px 0',
-              fontSize: '14px',
-            },
-          },
+          { className: 'v7-prefill' },
           window.h('input', {
             type: 'checkbox',
             checked: this.state.prefill,
@@ -284,13 +286,14 @@ CMS.registerMediaLibrary({
   name: 'v7-r2',
   init({ handleInsert }) {
     const dialog = element('dialog');
-    dialog.style.cssText =
-      'width:min(90vw,800px);max-height:85vh;padding:24px;border:1px solid #aaa;background:white;color:#222;z-index:9999';
+    dialog.className = 'v7-r2-dialog';
     const title = element('h2', 'R2 图片库');
     const status = element('p');
     status.setAttribute('role', 'status');
+    status.className = 'v7-note';
     const close = element('button', '关闭');
     close.type = 'button';
+    close.className = 'v7-photo-add';
     close.onclick = () => dialog.close();
     const input = element('input');
     input.type = 'file';
@@ -298,7 +301,7 @@ CMS.registerMediaLibrary({
     input.dataset.v7Upload = '';
     input.setAttribute('aria-label', '上传图片');
     const grid = element('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px';
+    grid.className = 'v7-photo-grid';
     const more = element('button', '加载更多');
     more.type = 'button';
     let cursor = '';
@@ -328,11 +331,12 @@ CMS.registerMediaLibrary({
         for (const asset of data.assets) {
           const button = element('button');
           button.type = 'button';
+          button.className = 'v7-photo';
           const img = element('img');
           img.src = asset.src;
           img.alt = asset.name || '';
-          img.style.cssText = 'width:100%;height:120px;object-fit:cover';
-          button.append(img, element('span', asset.name));
+          img.loading = 'lazy';
+          button.append(img, element('figcaption', asset.name || ''));
           button.onclick = () => insert(asset);
           grid.append(button);
         }
@@ -416,5 +420,6 @@ CMS.registerEventListener({
       );
   },
 });
+await registerLocale(CMS);
 loading.remove();
 CMS.init({ config, load_config_file: false });
