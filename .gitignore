@@ -35,3 +35,6 @@ worker/.wrangler/
 *.dng
 *.raf
 .scratch/
+
+# The editor is a build artifact, copied from its own repository by scripts/copy-cms.mjs.
+public/cms/

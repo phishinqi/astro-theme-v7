@@ -9,7 +9,7 @@
     "pnpm": ">=12.5.1 <13"
   },
   "scripts": {
-    "dev": "node scripts/prepare-admin.mjs && astro dev",
+    "dev": "node scripts/copy-cms.mjs && astro dev",
     "dev:cms": "node scripts/dev-cms.mjs",
     "check": "astro check",
     "lint": "eslint . --max-warnings 0",
@@ -17,13 +17,14 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "build": "node scripts/prepare-admin.mjs && astro build && node scripts/build-search.mjs",
+    "build": "node scripts/copy-cms.mjs && astro build && node scripts/build-search.mjs",
     "preview": "astro preview",
     "verify": "pnpm check && pnpm lint && pnpm format:check && pnpm test && pnpm build && pnpm test:e2e",
     "cms:local": "node scripts/cms-local.mjs",
     "new:post": "node scripts/new-post.mjs",
     "test:variants": "node scripts/check-variants.mjs",
-    "images:demo": "node scripts/generate-demo-images.mjs"
+    "images:demo": "node scripts/generate-demo-images.mjs",
+    "cms:copy": "node scripts/copy-cms.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "7.3.0",

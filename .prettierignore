@@ -6,6 +6,7 @@ playwright-report/
 test-results/
 coverage/
 public/admin/vendor/
+public/cms/
 .reports/
 .wrangler/
 .scratch/
