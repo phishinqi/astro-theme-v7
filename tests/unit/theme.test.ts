@@ -117,7 +117,7 @@ describe('the template guard', () => {
   });
 
   it('ships the marker that makes the guard apply to copies', async () => {
-    // Committed, so every copy has one; `pnpm setup` deletes it. Without the file in the
+    // Committed, so every copy has one; `pnpm bootstrap` deletes it. Without the file in the
     // repository, a copy would have nothing to trip the guard.
     const { existsSync } = await import('node:fs');
     const { resolve } = await import('node:path');
@@ -127,7 +127,7 @@ describe('the template guard', () => {
   it('ships a setup script that rewrites identity and clears the guard', async () => {
     const { readFile } = await import('node:fs/promises');
     const { resolve } = await import('node:path');
-    const script = await readFile(resolve('scripts/setup.mjs'), 'utf8');
+    const script = await readFile(resolve('scripts/bootstrap.mjs'), 'utf8');
     // Every field a copy inherits from the template.
     for (const field of ['siteURL', 'defaultAuthor', 'socialLinks']) {
       expect(script, `setup must rewrite ${field}`).toContain(field);
@@ -157,12 +157,96 @@ describe('the template guard', () => {
     expect(clientId).toBe('replace-with-oauth-client-id');
   });
 
+  it('does not name a script that pnpm owns', async () => {
+    // `pnpm setup` is a pnpm command — it installs pnpm itself — and it shadows a script of that
+    // name, so `pnpm setup --url …` printed pnpm's usage instead of running this repository's
+    // script. The documented command never worked.
+    //
+    // The check runs pnpm from a directory with no package.json, where nothing can shadow it, so
+    // the answer is pnpm's own. Two details that made earlier attempts pass while checking
+    // nothing: pnpm needs `shell: true` on Windows (a shim, not an executable), and running inside
+    // the project means a script of the same name answers instead of pnpm.
+    const { readFile } = await import('node:fs/promises');
+    const { resolve } = await import('node:path');
+    const { spawnSync } = await import('node:child_process');
+    const { tmpdir } = await import('node:os');
+    const packageJson = JSON.parse(await readFile(resolve('package.json'), 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+
+    const pnpmSays = (name: string): string | undefined => {
+      const result = spawnSync('pnpm', [`${name}`, '--help'], {
+        cwd: tmpdir(),
+        encoding: 'utf8',
+        shell: true,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+      return result.status === 0 ? (result.stdout ?? '') : undefined;
+    };
+
+    // Sanity: the probe must find a command pnpm definitely owns, or it is measuring nothing.
+    expect(pnpmSays('setup'), 'the probe cannot see pnpm builtins').toBeDefined();
+
+    for (const name of Object.keys(packageJson.scripts)) {
+      const help = pnpmSays(name);
+      if (help === undefined) continue;
+      // A command whose help says it runs the package's script is delegating, which is fine.
+      const delegates = /runs (a package's|the) ["']?[\w:-]+["']? script/i.test(help);
+      expect(
+        delegates,
+        `\`pnpm ${name}\` is a pnpm command that does not delegate to scripts, so it shadows ` +
+          `scripts.${name}. Rename the script.`,
+      ).toBe(true);
+    }
+  });
+
   it('documents how to obtain the theme', async () => {
     // The README used to start at `pnpm install`, which presumes you already have the repository.
     const { readFile } = await import('node:fs/promises');
     const { resolve } = await import('node:path');
     const readme = await readFile(resolve('README.md'), 'utf8');
     expect(readme).toContain('Use this template');
-    expect(readme).toContain('pnpm setup');
+    expect(readme).toContain('pnpm bootstrap');
+  });
+});
+
+describe('the bootstrap command', () => {
+  it('strips the separator pnpm forwards, so its flags survive parsing', async () => {
+    // `pnpm bootstrap -- --url x` reaches the script as ['--', '--url', 'x'], and `parseArgs`
+    // treats everything after a bare `--` as positional — so every flag was dropped and the script
+    // reported success while changing nothing. That looks like it worked, and is worse than an
+    // error. Reproduced here rather than by running the script, which writes to the repository.
+    const { readFile } = await import('node:fs/promises');
+    const { resolve } = await import('node:path');
+    const { parseArgs } = await import('node:util');
+
+    const source = await readFile(resolve('scripts/bootstrap.mjs'), 'utf8');
+    // The script must do this, or the flags never arrive.
+    expect(source).toContain('indexOf');
+    expect(source).toContain('separator');
+
+    // And the fix has to actually work against the real parser.
+    const argv = ['--', '--url', 'https://example.test', '--author', 'someone'];
+    const separator = argv.indexOf('--');
+    const flags = [...argv.slice(0, separator), ...argv.slice(separator + 1)];
+    const parsed = parseArgs({
+      args: flags,
+      options: { url: { type: 'string' }, author: { type: 'string' } },
+    });
+    expect(parsed.values).toEqual({ url: 'https://example.test', author: 'someone' });
+  });
+
+  it('is not the pnpm builtin it used to be called after', async () => {
+    // The command was `pnpm setup` until it turned out pnpm owns that name. Whichever name is
+    // chosen, the documented one must be the one package.json defines.
+    const { readFile } = await import('node:fs/promises');
+    const { resolve } = await import('node:path');
+    const packageJson = JSON.parse(await readFile(resolve('package.json'), 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+    const readme = await readFile(resolve('README.md'), 'utf8');
+    const documented = /pnpm ([a-z:]+) -- --url/.exec(readme)?.[1];
+    expect(documented, 'the README must show the command').toBeTruthy();
+    expect(packageJson.scripts[documented!], `scripts.${documented} must exist`).toBeTruthy();
   });
 });

@@ -122,7 +122,7 @@ new Intl.DateTimeFormat(parsed.locale, { timeZone: parsed.timeZone });
  *
  * Two signals, and neither is sufficient alone:
  *
- * - The marker file is committed, so every copy has one, and `pnpm setup` deletes it. Alone it
+ * - The marker file is committed, so every copy has one, and `pnpm bootstrap` deletes it. Alone it
  *   would also block this repository, which is the template and carries the same file.
  * - The remote identifies this repository as the template's origin. Alone it would block a copy
  *   whose owner had already pointed it at their own repository — the correct thing to do — since
@@ -155,7 +155,7 @@ if (
 ) {
   throw new Error(
     'This site has not been set up yet. Run ' +
-      '`pnpm setup -- --url https://your-domain --repo you/your-repo`, then build again. ' +
+      '`pnpm bootstrap -- url https://your-domain --repo you/your-repo`, then build again. ' +
       "Without it the published site would claim the template author's domain in its canonical " +
       'URLs, RSS and sitemap, and the editor would write to their repository.',
   );

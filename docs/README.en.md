@@ -20,10 +20,10 @@ cd my-blog
 
 ```sh
 pnpm install
-pnpm setup -- --url https://your-domain.com --repo you/your-repo --author you
+pnpm bootstrap -- --url https://your-domain.com --repo you/your-repo --author you
 ```
 
-`pnpm setup` replaces the template author's domain, repository and author with yours. Skipping it
+`pnpm bootstrap` replaces the template author's domain, repository and author with yours. Skipping it
 is not harmless: a copy carries the original `siteURL`, so your canonical URLs, RSS and sitemap
 would claim their domain and the editor would write to their repository.
 

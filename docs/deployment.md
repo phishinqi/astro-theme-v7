@@ -3,9 +3,9 @@
 ## 部署前
 
 1. 使用 Node.js 24.16.0 / pnpm 12.5.1 干净安装：`pnpm install`。
-2. **先跑 `pnpm setup`**，把副本里的域名、作者和仓库换成你自己的：
+2. **先跑 `pnpm bootstrap`**，把副本里的域名、作者和仓库换成你自己的：
    ```sh
-   pnpm setup -- --url https://你的域名 --repo 你/你的仓库 --author 你
+   pnpm bootstrap -- --url https://你的域名 --repo 你/你的仓库 --author 你
    ```
    跳过这一步的话，正式产物的 canonical、RSS 和站点地图会声称是**模板作者**的域名，写作后台也会去写他的仓库。没跑 setup 时 `pnpm build` 会直接报错拦住你。
 3. 替换示例文章、关于页及默认分享图；确认日期时区、草稿状态。
@@ -33,7 +33,7 @@
 
 若域名托管在别处、要手工添加：类型 `CNAME`、名称**只填子域前缀**（`blog`，不是 `blog.我的域名`，否则会变成 `blog.我的域名.我的域名`）、目标 `<项目名>.pages.dev`、代理状态**已代理**（橙色云）。
 
-⚠️ **域名和 `pnpm setup --url` 必须一致。** 改域名要重跑 setup 并重新构建，否则 canonical、RSS 和 sitemap 还是旧域名。
+⚠️ **域名和 `pnpm bootstrap --url` 必须一致。** 改域名要重跑 setup 并重新构建，否则 canonical、RSS 和 sitemap 还是旧域名。
 
 写作后台由 `functions/api/` 提供 GitHub 登录与可选 R2 图片接口，和站点同域名、一起部署，不需要单独的 Worker。环境变量：`GITHUB_REPO`（你的仓库）、`GITHUB_CLIENT_ID`（你自己的 OAuth App）、secret `GITHUB_CLIENT_SECRET`；R2 模式再加 `MEDIA` 绑定和 `PUBLIC_MEDIA_URL`。**完整步骤见 [写作后台文档](cms.md#线上登录oauth-配置)。**
 

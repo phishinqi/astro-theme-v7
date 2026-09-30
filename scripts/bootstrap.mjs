@@ -5,14 +5,25 @@
 // published — your RSS, canonical URLs and sitemap would all point at somebody else's site — so
 // this rewrites the places identity lives, and the build refuses to run unconfigured.
 //
-//   pnpm setup -- --url https://example.com --title "My blog" --repo me/my-blog --author me
+//   pnpm bootstrap -- url https://example.com --title "My blog" --repo me/my-blog --author me
 //
 // Every flag is optional; anything omitted keeps its current value or is derived.
 import { glob, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
+/**
+ * pnpm forwards its own `--` as a literal argument: `pnpm bootstrap -- --url x` arrives here as
+ * `['--', '--url', 'x']`. `parseArgs` treats everything after a bare `--` as positional, so every
+ * flag would be dropped and the script would report success while changing nothing — worse than an
+ * error, because it looks like it worked.
+ */
+const argv = process.argv.slice(2);
+const separator = argv.indexOf('--');
+const flags = separator === -1 ? argv : [...argv.slice(0, separator), ...argv.slice(separator + 1)];
+
 const args = parseArgs({
+  args: flags,
   options: {
     url: { type: 'string' },
     title: { type: 'string' },
@@ -25,7 +36,7 @@ const args = parseArgs({
 });
 
 if (args.values.help) {
-  console.log(`Usage: pnpm setup -- [options]
+  console.log(`Usage: pnpm bootstrap -- [options]
 
   --url <origin>        Public origin, e.g. https://example.com   (required to publish)
   --title <name>        Site title
@@ -68,7 +79,7 @@ if (args.values.repo) {
   }
   // The backend is derived by scripts/cms-config-github.mjs from these env vars, so the source of
   // truth is the generator's defaults rather than the generated file. Rewriting both keeps a
-  // `pnpm setup` and a later build consistent.
+  // `pnpm bootstrap` and a later build consistent.
   const generator = resolve('scripts/cms-config-github.mjs');
   const source = await readFile(generator, 'utf8');
   const [owner, repo] = args.values.repo.split('/');
