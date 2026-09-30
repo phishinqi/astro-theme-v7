@@ -12,6 +12,12 @@ const SOURCE = 'cms.config.json';
 const TARGET = 'cms.config.github.json';
 /** Filled in by the deploy environment; the editor only needs it to find the OAuth relay. */
 const AUTH_BASE = process.env.CMS_AUTH_BASE ?? 'https://v7.soyonagasaki.com';
+/**
+ * The relay's endpoint path. The theme serves its functions under `functions/api/`, so the relay
+ * lives at `/api/auth`, not the `/auth` the editor asks for by default. Getting this wrong is a
+ * 404 in the sign-in popup, so it is set explicitly rather than left to the default.
+ */
+const AUTH_ENDPOINT = process.env.CMS_AUTH_ENDPOINT ?? 'api/auth';
 const REPO = process.env.CMS_REPO ?? 'phishinqi/astro-theme-v7';
 
 const source = JSON.parse(await readFile(SOURCE, 'utf8'));
@@ -23,6 +29,7 @@ const hosted = {
     repo: REPO,
     branch: process.env.CMS_BRANCH ?? 'main',
     authBase: AUTH_BASE,
+    authEndpoint: AUTH_ENDPOINT,
   },
 };
 

@@ -4,7 +4,8 @@
     "name": "github",
     "repo": "phishinqi/astro-theme-v7",
     "branch": "main",
-    "authBase": "https://v7.soyonagasaki.com"
+    "authBase": "https://v7.soyonagasaki.com",
+    "authEndpoint": "api/auth"
   },
   "media": {
     "provider": "repo",
