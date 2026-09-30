@@ -24,7 +24,8 @@
     "test:variants": "node scripts/check-variants.mjs",
     "images:demo": "node scripts/generate-demo-images.mjs",
     "cms:copy": "node scripts/copy-cms.mjs",
-    "cms:config": "node scripts/cms-config-github.mjs"
+    "cms:config": "node scripts/cms-config-github.mjs",
+    "setup": "node scripts/setup.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "7.3.0",

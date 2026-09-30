@@ -6,14 +6,57 @@
 
 ## 开始
 
-工具链：Node.js **24.16.0**，pnpm **12.5.1**。
+这是一个 **GitHub 模板仓库**。工具链：Node.js **24.16.0**，pnpm **12.5.1**。
+
+### 1. 得到一份自己的副本
+
+点仓库右上角的 **Use this template → Create a new repository**，得到一份干净副本（不带本仓库的提交历史）。
+
+或者克隆：
 
 ```sh
-pnpm install --frozen-lockfile
+git clone https://github.com/phishinqi/astro-theme-v7.git my-blog
+cd my-blog
+```
+
+### 2. 改成你自己的
+
+```sh
+pnpm install
+pnpm setup -- --url https://your-domain.com --repo you/your-repo --author you
+```
+
+`pnpm setup` 会把**原作者的域名、仓库和作者**换成你的。这一步不能跳过：副本默认带着本仓库的 `siteURL`，不改的话你的 canonical、RSS 和站点地图会声称是别人的域名，写作后台也会直连别人的仓库。
+
+> **没跑 setup 就跑 `pnpm build` 会直接报错**，并告诉你该做什么。这是有意的——这个错误不这么拦，就会一直藏到你发布之后。
+
+| 参数            | 说明                                      |
+| --------------- | ----------------------------------------- |
+| `--url`         | 你的正式域名，如 `https://example.com`    |
+| `--repo`        | 写作后台要写入的仓库，`owner/repo`        |
+| `--title`       | 站点标题                                  |
+| `--author`      | 作者 id（小写英文，用于文章 frontmatter） |
+| `--author-name` | 作者显示名                                |
+
+省略的参数保持原值。随时可以再跑一次改。
+
+### 3. 写你自己的内容
+
+`content/posts/` 里是示例文章，`pnpm setup` 不会删它们——删掉或改写都行。用 `pnpm new:post` 新建：
+
+```sh
+pnpm new:post my-first-post tech "我的第一篇文章"
+```
+
+### 4. 跑起来
+
+```sh
 pnpm dev:cms   # 站点与写作后台在同一个进程里；只看站点用 pnpm dev
 ```
 
 浏览站点：`http://localhost:4321/`。写作后台：`http://localhost:4321/admin/`，线上从页脚的“写作”进入。后台是 [v7-cms](https://github.com/phishinqi/v7-cms)，在本机文件夹、本地代理和 GitHub 三种方式里选一种，不需要额外的本地服务。搜索需要先构建，再运行 `pnpm preview`。
+
+部署见[部署说明](docs/deployment.md)。
 
 ## 内容目录
 

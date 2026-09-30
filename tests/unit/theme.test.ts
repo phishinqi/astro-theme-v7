@@ -97,3 +97,40 @@ describe('theme content contract', () => {
     ).toThrow();
   });
 });
+
+describe('the template guard', () => {
+  it('is present, because a copy that skips setup would publish under someone else', async () => {
+    // The failure this prevents is invisible locally and permanent once deployed: a copy arrives
+    // with the template author's siteURL, so its canonical URLs, RSS and sitemap would all name
+    // that domain, and the editor would write to their repository.
+    const { readFile } = await import('node:fs/promises');
+    const { resolve } = await import('node:path');
+    const source = await readFile(resolve('src/site.config.ts'), 'utf8');
+    expect(source).toContain('TEMPLATE_REMOTE');
+    expect(source).toContain('has not been set up yet');
+    // The override exists so the template itself can be built from an export with no remote.
+    expect(source).toContain('V7_TEMPLATE_BUILD');
+  });
+
+  it('ships a setup script that rewrites identity and clears the guard', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const { resolve } = await import('node:path');
+    const script = await readFile(resolve('scripts/setup.mjs'), 'utf8');
+    // Every field a copy inherits from the template.
+    for (const field of ['siteURL', 'defaultAuthor', 'socialLinks']) {
+      expect(script, `setup must rewrite ${field}`).toContain(field);
+    }
+    // Content names authors explicitly and the schema rejects an unknown one, so a rename without
+    // this leaves posts pointing at an id that no longer exists.
+    expect(script).toContain('authors:');
+  });
+
+  it('documents how to obtain the theme', async () => {
+    // The README used to start at `pnpm install`, which presumes you already have the repository.
+    const { readFile } = await import('node:fs/promises');
+    const { resolve } = await import('node:path');
+    const readme = await readFile(resolve('README.md'), 'utf8');
+    expect(readme).toContain('Use this template');
+    expect(readme).toContain('pnpm setup');
+  });
+});

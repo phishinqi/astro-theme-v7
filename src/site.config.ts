@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import raw from '../site.config.json';
 import categories from '../data/categories.json';
 import authors from '../data/authors.json';
@@ -106,6 +107,46 @@ if (
 )
   throw new Error('siteURL must be an HTTP(S) origin.');
 new Intl.DateTimeFormat(parsed.locale, { timeZone: parsed.timeZone });
+
+/**
+ * Refuse to build a copy of this template that nobody has configured.
+ *
+ * The repository is a GitHub template. A copy arrives carrying the original author's `siteURL`,
+ * their repository as the editor's backend, and their writing as the sample content — and none of
+ * that is visible until the output ships, at which point the canonical URLs, RSS and sitemap all
+ * name somebody else's domain and the editor writes to their repository.
+ *
+ * The signal is the git remote. This repository's remote identifies the template, so its own build
+ * proceeds; a copy made from it has a different remote and stops until `pnpm setup` has run, which
+ * is the step that rewrites the identity. `siteURL` would be the obvious thing to test and it does
+ * not work, because the template's repository is itself a live site using that origin.
+ *
+ * `V7_TEMPLATE_BUILD=1` overrides, for building the template from an export with no remote.
+ */
+const TEMPLATE_REMOTE = 'phishinqi/astro-theme-v7';
+function isTheTemplateCheckout(): boolean {
+  if (process.env['V7_TEMPLATE_BUILD'] === '1') return true;
+  try {
+    const remote = execFileSync('git', ['config', '--get', 'remote.origin.url'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    return remote.includes(TEMPLATE_REMOTE);
+  } catch {
+    // No git, or no remote: an export or a tarball. Treat it as a copy, which is the safe reading —
+    // the guard's whole job is to stop an unconfigured site from being published.
+    return false;
+  }
+}
+if (!isTheTemplateCheckout()) {
+  throw new Error(
+    'This site has not been set up yet. Run ' +
+      '`pnpm setup -- --url https://your-domain --repo you/your-repo`, then build again. ' +
+      "Without it the published site would claim the template author's domain in its canonical " +
+      'URLs, RSS and sitemap, and the editor would write to their repository.',
+  );
+}
+
 export const siteConfig = {
   ...parsed,
   categories: categoryRegistry,

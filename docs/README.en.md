@@ -4,7 +4,53 @@ A reading-focused Astro theme with warm paper colors, dark mode, Markdown/MDX, G
 
 ## Start
 
-Use Node 24.16.0 and pnpm 12.5.1. Run `pnpm install --frozen-lockfile`, then `pnpm dev:cms` to start the site together with the local editor proxy, and open `http://localhost:4321/admin/` (`pnpm dev` alone serves only the site). On a deployed site the editor is linked as "Write" in the footer. The local editor writes directly to the working directory; do not expose its proxy to the Internet.
+This repository is a **GitHub template**. Use Node 24.16.0 and pnpm 12.5.1.
+
+### 1. Get your own copy
+
+Click **Use this template → Create a new repository** to get a clean copy without this
+repository's history, or clone it:
+
+```sh
+git clone https://github.com/phishinqi/astro-theme-v7.git my-blog
+cd my-blog
+```
+
+### 2. Make it yours
+
+```sh
+pnpm install
+pnpm setup -- --url https://your-domain.com --repo you/your-repo --author you
+```
+
+`pnpm setup` replaces the template author's domain, repository and author with yours. Skipping it
+is not harmless: a copy carries the original `siteURL`, so your canonical URLs, RSS and sitemap
+would claim their domain and the editor would write to their repository.
+
+`pnpm build` fails with an explanation until this has run, on purpose — the mistake is invisible
+locally and permanent once published.
+
+| Flag            | Meaning                                           |
+| --------------- | ------------------------------------------------- |
+| `--url`         | Your public origin, e.g. `https://example.com`    |
+| `--repo`        | Repository the editor writes to, `owner/repo`     |
+| `--title`       | Site title                                        |
+| `--author`      | Author id, lowercase, used in content frontmatter |
+| `--author-name` | Author display name                               |
+
+Omitted flags keep their current value, and you can run it again at any time.
+
+### 3. Write, then run
+
+The sample posts in `content/posts/` are left alone for you to replace. Then:
+
+```sh
+pnpm dev:cms
+```
+
+Open `http://localhost:4321/` for the site and `http://localhost:4321/admin/` for the editor
+(`pnpm dev` alone serves only the site). On a deployed site the editor is linked as "Write" in the
+footer. It writes directly to the working directory; do not expose its proxy to the Internet.
 
 Use `pnpm build` and `pnpm preview` to test real Pagefind search. Run `pnpm verify` for the complete checks.
 
