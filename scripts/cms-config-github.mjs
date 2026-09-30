@@ -7,6 +7,7 @@
 // The GitHub backend is what the deployed editor uses: the theme is static, so the only way to
 // write to the repository from a phone or another machine is through GitHub's API.
 import { readFile, writeFile } from 'node:fs/promises';
+import { format, resolveConfig } from 'prettier';
 
 const SOURCE = 'cms.config.json';
 const TARGET = 'cms.config.github.json';
@@ -39,5 +40,10 @@ if (!/^https?:\/\//.test(hosted.backend.authBase)) {
   throw new Error(`authBase must be an absolute URL, got "${hosted.backend.authBase}"`);
 }
 
-await writeFile(TARGET, `${JSON.stringify(hosted, null, 2)}\n`);
-console.log(`${TARGET} written (github backend → ${REPO}, relay ${AUTH_BASE})`);
+// Formatted with the project's prettier config, because `pnpm format:check` covers this file and a
+// generator that emits something the formatter would rewrite fails the build it feeds. The config
+// is resolved explicitly: `format()` alone does not pick up `prettier.config.mjs` from the cwd.
+const options = (await resolveConfig(TARGET)) ?? {};
+const text = await format(JSON.stringify(hosted), { ...options, filepath: TARGET });
+await writeFile(TARGET, text);
+console.log(`${TARGET} written (github backend → ${REPO}, relay ${AUTH_BASE}/${AUTH_ENDPOINT})`);

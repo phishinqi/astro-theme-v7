@@ -15,10 +15,7 @@
     "exif": true
   },
   "locale": "zh-CN",
-  "preview": {
-    "devServerURL": "http://localhost:4321",
-    "pathTemplate": "/posts/{{slug}}/"
-  },
+  "preview": { "devServerURL": "http://localhost:4321", "pathTemplate": "/posts/{{slug}}/" },
   "collections": [
     {
       "kind": "fields",
@@ -31,40 +28,17 @@
       "contentField": "body",
       "nested": true,
       "fields": [
-        {
-          "name": "title",
-          "widget": "string",
-          "label": "标题",
-          "required": true
-        },
-        {
-          "name": "description",
-          "widget": "text",
-          "label": "摘要",
-          "required": true
-        },
+        { "name": "title", "widget": "string", "label": "标题", "required": true },
+        { "name": "description", "widget": "text", "label": "摘要", "required": true },
         {
           "name": "slug",
           "widget": "string",
           "label": "永久链接 slug",
           "required": true,
-          "pattern": [
-            "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-            "使用小写英文、数字和连字符；发布后保持不变。"
-          ]
+          "pattern": ["^[a-z0-9]+(?:-[a-z0-9]+)*$", "使用小写英文、数字和连字符；发布后保持不变。"]
         },
-        {
-          "name": "pubDate",
-          "widget": "datetime",
-          "label": "发布时间",
-          "required": true
-        },
-        {
-          "name": "updatedDate",
-          "widget": "datetime",
-          "label": "更新时间",
-          "required": false
-        },
+        { "name": "pubDate", "widget": "datetime", "label": "发布时间", "required": true },
+        { "name": "updatedDate", "widget": "datetime", "label": "更新时间", "required": false },
         {
           "name": "category",
           "widget": "relation",
@@ -78,10 +52,7 @@
           "widget": "list",
           "label": "标签",
           "required": false,
-          "field": {
-            "name": "tag",
-            "widget": "string"
-          }
+          "field": { "name": "tag", "widget": "string" }
         },
         {
           "name": "authors",
@@ -95,27 +66,9 @@
             "valueField": "id"
           }
         },
-        {
-          "name": "lang",
-          "widget": "select",
-          "label": "正文语言",
-          "options": [
-            "zh-CN",
-            "en"
-          ]
-        },
-        {
-          "name": "draft",
-          "widget": "boolean",
-          "label": "草稿（不发布）",
-          "required": false
-        },
-        {
-          "name": "featured",
-          "widget": "boolean",
-          "label": "精选",
-          "required": false
-        },
+        { "name": "lang", "widget": "select", "label": "正文语言", "options": ["zh-CN", "en"] },
+        { "name": "draft", "widget": "boolean", "label": "草稿（不发布）", "required": false },
+        { "name": "featured", "widget": "boolean", "label": "精选", "required": false },
         {
           "name": "cover",
           "widget": "object",
@@ -123,26 +76,10 @@
           "required": false,
           "collapseEmpty": true,
           "fields": [
-            {
-              "name": "src",
-              "widget": "image",
-              "label": "图片"
-            },
-            {
-              "name": "alt",
-              "widget": "string",
-              "label": "替代文本"
-            },
-            {
-              "name": "width",
-              "widget": "number",
-              "label": "宽度"
-            },
-            {
-              "name": "height",
-              "widget": "number",
-              "label": "高度"
-            },
+            { "name": "src", "widget": "image", "label": "图片" },
+            { "name": "alt", "widget": "string", "label": "替代文本" },
+            { "name": "width", "widget": "number", "label": "宽度" },
+            { "name": "height", "widget": "number", "label": "高度" },
             {
               "name": "focal",
               "widget": "string",
@@ -150,25 +87,11 @@
               "required": false,
               "hint": "例如 50% 50%；留空使用中心。"
             },
-            {
-              "name": "caption",
-              "widget": "string",
-              "label": "说明",
-              "required": false
-            }
+            { "name": "caption", "widget": "string", "label": "说明", "required": false }
           ]
         },
-        {
-          "name": "ogImage",
-          "widget": "image",
-          "label": "分享图",
-          "required": false
-        },
-        {
-          "name": "body",
-          "widget": "markdown",
-          "label": "正文"
-        }
+        { "name": "ogImage", "widget": "image", "label": "分享图", "required": false },
+        { "name": "body", "widget": "markdown", "label": "正文" }
       ]
     },
     {
@@ -182,36 +105,11 @@
       "contentField": "body",
       "nested": true,
       "fields": [
-        {
-          "name": "title",
-          "widget": "string",
-          "label": "标题",
-          "required": true
-        },
-        {
-          "name": "description",
-          "widget": "text",
-          "label": "摘要",
-          "required": true
-        },
-        {
-          "name": "slug",
-          "widget": "string",
-          "label": "永久链接 slug",
-          "required": true
-        },
-        {
-          "name": "pubDate",
-          "widget": "datetime",
-          "label": "发布时间",
-          "required": true
-        },
-        {
-          "name": "updatedDate",
-          "widget": "datetime",
-          "label": "更新时间",
-          "required": false
-        },
+        { "name": "title", "widget": "string", "label": "标题", "required": true },
+        { "name": "description", "widget": "text", "label": "摘要", "required": true },
+        { "name": "slug", "widget": "string", "label": "永久链接 slug", "required": true },
+        { "name": "pubDate", "widget": "datetime", "label": "发布时间", "required": true },
+        { "name": "updatedDate", "widget": "datetime", "label": "更新时间", "required": false },
         {
           "name": "category",
           "widget": "relation",
@@ -225,10 +123,7 @@
           "widget": "list",
           "label": "标签",
           "required": false,
-          "field": {
-            "name": "tag",
-            "widget": "string"
-          }
+          "field": { "name": "tag", "widget": "string" }
         },
         {
           "name": "authors",
@@ -242,32 +137,10 @@
             "valueField": "id"
           }
         },
-        {
-          "name": "lang",
-          "widget": "select",
-          "label": "正文语言",
-          "options": [
-            "zh-CN",
-            "en"
-          ]
-        },
-        {
-          "name": "draft",
-          "widget": "boolean",
-          "label": "草稿（不发布）",
-          "required": false
-        },
-        {
-          "name": "featured",
-          "widget": "boolean",
-          "label": "精选",
-          "required": false
-        },
-        {
-          "name": "body",
-          "widget": "source",
-          "label": "正文源码（MDX 保真）"
-        }
+        { "name": "lang", "widget": "select", "label": "正文语言", "options": ["zh-CN", "en"] },
+        { "name": "draft", "widget": "boolean", "label": "草稿（不发布）", "required": false },
+        { "name": "featured", "widget": "boolean", "label": "精选", "required": false },
+        { "name": "body", "widget": "source", "label": "正文源码（MDX 保真）" }
       ]
     },
     {
@@ -279,13 +152,7 @@
       "format": "frontmatter",
       "contentField": "body",
       "nested": false,
-      "fields": [
-        {
-          "name": "body",
-          "widget": "source",
-          "label": "正文源码"
-        }
-      ]
+      "fields": [{ "name": "body", "widget": "source", "label": "正文源码" }]
     },
     {
       "kind": "fields",
@@ -301,18 +168,8 @@
         "publicPath": "/images/albums/{{slug}}"
       },
       "fields": [
-        {
-          "name": "title",
-          "widget": "string",
-          "label": "标题",
-          "required": true
-        },
-        {
-          "name": "slug",
-          "widget": "string",
-          "label": "slug",
-          "required": true
-        },
+        { "name": "title", "widget": "string", "label": "标题", "required": true },
+        { "name": "slug", "widget": "string", "label": "slug", "required": true },
         {
           "name": "date",
           "widget": "datetime",
@@ -320,18 +177,8 @@
           "required": true,
           "format": "YYYY-MM-DD"
         },
-        {
-          "name": "draft",
-          "widget": "boolean",
-          "label": "草稿",
-          "required": false
-        },
-        {
-          "name": "description",
-          "widget": "text",
-          "label": "简介",
-          "required": false
-        },
+        { "name": "draft", "widget": "boolean", "label": "草稿", "required": false },
+        { "name": "description", "widget": "text", "label": "简介", "required": false },
         {
           "name": "authors",
           "widget": "list",
@@ -383,18 +230,8 @@
               "required": true,
               "hint": "描述画面，供读屏与加载失败时使用。"
             },
-            {
-              "name": "width",
-              "widget": "number",
-              "label": "宽度",
-              "required": true
-            },
-            {
-              "name": "height",
-              "widget": "number",
-              "label": "高度",
-              "required": true
-            },
+            { "name": "width", "widget": "number", "label": "宽度", "required": true },
+            { "name": "height", "widget": "number", "label": "高度", "required": true },
             {
               "name": "id",
               "widget": "string",
@@ -408,28 +245,12 @@
               "required": false,
               "default": "photo",
               "options": [
-                {
-                  "label": "照片",
-                  "value": "photo"
-                },
-                {
-                  "label": "创作",
-                  "value": "artwork"
-                }
+                { "label": "照片", "value": "photo" },
+                { "label": "创作", "value": "artwork" }
               ]
             },
-            {
-              "name": "title",
-              "widget": "string",
-              "label": "标题",
-              "required": false
-            },
-            {
-              "name": "caption",
-              "widget": "text",
-              "label": "说明",
-              "required": false
-            },
+            { "name": "title", "widget": "string", "label": "标题", "required": false },
+            { "name": "caption", "widget": "text", "label": "说明", "required": false },
             {
               "name": "date",
               "widget": "datetime",
@@ -437,12 +258,7 @@
               "required": false,
               "format": "YYYY-MM-DD"
             },
-            {
-              "name": "location",
-              "widget": "string",
-              "label": "地点",
-              "required": false
-            },
+            { "name": "location", "widget": "string", "label": "地点", "required": false },
             {
               "name": "tags",
               "widget": "list",
@@ -490,54 +306,14 @@
               "required": false,
               "collapseEmpty": true,
               "fields": [
-                {
-                  "name": "camera",
-                  "widget": "string",
-                  "label": "相机",
-                  "required": false
-                },
-                {
-                  "name": "lens",
-                  "widget": "string",
-                  "label": "镜头",
-                  "required": false
-                },
-                {
-                  "name": "focalLength",
-                  "widget": "string",
-                  "label": "焦距",
-                  "required": false
-                },
-                {
-                  "name": "aperture",
-                  "widget": "string",
-                  "label": "光圈",
-                  "required": false
-                },
-                {
-                  "name": "shutter",
-                  "widget": "string",
-                  "label": "快门",
-                  "required": false
-                },
-                {
-                  "name": "iso",
-                  "widget": "number",
-                  "label": "ISO",
-                  "required": false
-                },
-                {
-                  "name": "film",
-                  "widget": "string",
-                  "label": "胶片",
-                  "required": false
-                },
-                {
-                  "name": "software",
-                  "widget": "string",
-                  "label": "后期软件",
-                  "required": false
-                }
+                { "name": "camera", "widget": "string", "label": "相机", "required": false },
+                { "name": "lens", "widget": "string", "label": "镜头", "required": false },
+                { "name": "focalLength", "widget": "string", "label": "焦距", "required": false },
+                { "name": "aperture", "widget": "string", "label": "光圈", "required": false },
+                { "name": "shutter", "widget": "string", "label": "快门", "required": false },
+                { "name": "iso", "widget": "number", "label": "ISO", "required": false },
+                { "name": "film", "widget": "string", "label": "胶片", "required": false },
+                { "name": "software", "widget": "string", "label": "后期软件", "required": false }
               ]
             },
             {
@@ -547,46 +323,21 @@
               "required": false,
               "collapseEmpty": true,
               "fields": [
-                {
-                  "name": "device",
-                  "widget": "string",
-                  "label": "设备",
-                  "required": false
-                },
+                { "name": "device", "widget": "string", "label": "设备", "required": false },
                 {
                   "name": "software",
                   "widget": "string",
                   "label": "软件或工具",
                   "required": false
                 },
-                {
-                  "name": "medium",
-                  "widget": "string",
-                  "label": "媒介",
-                  "required": false
-                }
+                { "name": "medium", "widget": "string", "label": "媒介", "required": false }
               ]
             },
-            {
-              "name": "color",
-              "widget": "string",
-              "label": "主色",
-              "required": false
-            },
-            {
-              "name": "srcset",
-              "widget": "string",
-              "label": "响应式图片集",
-              "required": false
-            }
+            { "name": "color", "widget": "string", "label": "主色", "required": false },
+            { "name": "srcset", "widget": "string", "label": "响应式图片集", "required": false }
           ]
         },
-        {
-          "name": "body",
-          "widget": "markdown",
-          "label": "正文",
-          "required": false
-        }
+        { "name": "body", "widget": "markdown", "label": "正文", "required": false }
       ]
     },
     {
@@ -599,35 +350,11 @@
       "identifierField": "slug",
       "contentField": "body",
       "fields": [
-        {
-          "name": "title",
-          "widget": "string",
-          "label": "标题",
-          "required": true
-        },
-        {
-          "name": "slug",
-          "widget": "string",
-          "label": "slug",
-          "required": true
-        },
-        {
-          "name": "date",
-          "widget": "datetime",
-          "label": "日期",
-          "required": true
-        },
-        {
-          "name": "draft",
-          "widget": "boolean",
-          "label": "草稿",
-          "required": false
-        },
-        {
-          "name": "body",
-          "widget": "markdown",
-          "label": "正文"
-        }
+        { "name": "title", "widget": "string", "label": "标题", "required": true },
+        { "name": "slug", "widget": "string", "label": "slug", "required": true },
+        { "name": "date", "widget": "datetime", "label": "日期", "required": true },
+        { "name": "draft", "widget": "boolean", "label": "草稿", "required": false },
+        { "name": "body", "widget": "markdown", "label": "正文" }
       ]
     },
     {
@@ -640,35 +367,11 @@
       "identifierField": "slug",
       "contentField": "body",
       "fields": [
-        {
-          "name": "title",
-          "widget": "string",
-          "label": "标题",
-          "required": true
-        },
-        {
-          "name": "slug",
-          "widget": "string",
-          "label": "slug",
-          "required": true
-        },
-        {
-          "name": "date",
-          "widget": "datetime",
-          "label": "日期",
-          "required": true
-        },
-        {
-          "name": "draft",
-          "widget": "boolean",
-          "label": "草稿",
-          "required": false
-        },
-        {
-          "name": "body",
-          "widget": "markdown",
-          "label": "正文"
-        }
+        { "name": "title", "widget": "string", "label": "标题", "required": true },
+        { "name": "slug", "widget": "string", "label": "slug", "required": true },
+        { "name": "date", "widget": "datetime", "label": "日期", "required": true },
+        { "name": "draft", "widget": "boolean", "label": "草稿", "required": false },
+        { "name": "body", "widget": "markdown", "label": "正文" }
       ]
     },
     {
@@ -681,55 +384,22 @@
       "identifierField": "slug",
       "contentField": "body",
       "fields": [
-        {
-          "name": "title",
-          "widget": "string",
-          "label": "标题",
-          "required": true
-        },
-        {
-          "name": "slug",
-          "widget": "string",
-          "label": "slug",
-          "required": true
-        },
-        {
-          "name": "date",
-          "widget": "datetime",
-          "label": "日期",
-          "required": true
-        },
-        {
-          "name": "draft",
-          "widget": "boolean",
-          "label": "草稿",
-          "required": false
-        },
+        { "name": "title", "widget": "string", "label": "标题", "required": true },
+        { "name": "slug", "widget": "string", "label": "slug", "required": true },
+        { "name": "date", "widget": "datetime", "label": "日期", "required": true },
+        { "name": "draft", "widget": "boolean", "label": "草稿", "required": false },
         {
           "name": "status",
           "widget": "select",
           "label": "状态",
           "required": false,
           "options": [
-            {
-              "label": "计划中",
-              "value": "planned"
-            },
-            {
-              "label": "进行中",
-              "value": "active"
-            },
-            {
-              "label": "已完成",
-              "value": "done"
-            }
+            { "label": "计划中", "value": "planned" },
+            { "label": "进行中", "value": "active" },
+            { "label": "已完成", "value": "done" }
           ]
         },
-        {
-          "name": "body",
-          "widget": "markdown",
-          "label": "正文"
-        }
+        { "name": "body", "widget": "markdown", "label": "正文" }
       ]
     },
     {
@@ -744,28 +414,13 @@
           "file": "site.config.json",
           "inferSchema": true,
           "fieldOverrides": {
-            "description": {
-              "widget": "i18n-string"
-            },
-            "intro.title": {
-              "widget": "i18n-string"
-            },
-            "intro.description": {
-              "widget": "i18n-string"
-            },
-            "nav.*.label": {
-              "widget": "i18n-string"
-            },
-            "moreNav.*.label": {
-              "widget": "i18n-string"
-            },
-            "postsPerPage": {
-              "widget": "number"
-            },
-            "startedAt": {
-              "widget": "datetime",
-              "format": "YYYY-MM-DD"
-            },
+            "description": { "widget": "i18n-string" },
+            "intro.title": { "widget": "i18n-string" },
+            "intro.description": { "widget": "i18n-string" },
+            "nav.*.label": { "widget": "i18n-string" },
+            "moreNav.*.label": { "widget": "i18n-string" },
+            "postsPerPage": { "widget": "number" },
+            "startedAt": { "widget": "datetime", "format": "YYYY-MM-DD" },
             "media.license": {
               "widget": "select",
               "options": [
