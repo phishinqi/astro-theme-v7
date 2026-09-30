@@ -10,7 +10,7 @@ compatibility_date = "2026-09-01"
 [vars]
 # Required only by the editor's GitHub backend (`/api/auth`, `/api/callback`). The published site
 # is fully static and never reaches these.
-GITHUB_REPO = "phishinqi/v7-blog"
+GITHUB_REPO = "phishinqi/astro-theme-v7"
 GITHUB_CLIENT_ID = "replace-with-oauth-client-id"
 
 # R2 mode only: the public base URL of the bucket (custom domain or r2.dev).
