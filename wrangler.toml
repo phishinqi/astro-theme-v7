@@ -11,7 +11,10 @@ compatibility_date = "2026-09-01"
 # Required only by the editor's GitHub backend (`/api/auth`, `/api/callback`). The published site
 # is fully static and never reaches these.
 GITHUB_REPO = "phishinqi/astro-theme-v7"
-GITHUB_CLIENT_ID = "Ov23liT99BgFWULUnjW8"
+# Replace with your own OAuth App's client id (GitHub → Settings → Developer settings → OAuth Apps).
+# `pnpm setup` resets this for a copy; leaving a real-looking value here would be worse than a
+# placeholder, because a copy would silently sign its authors in through somebody else's app.
+GITHUB_CLIENT_ID = "replace-with-oauth-client-id"
 
 # R2 mode only: the public base URL of the bucket (custom domain or r2.dev).
 # PUBLIC_MEDIA_URL = "https://img.soyonagasaki.com"

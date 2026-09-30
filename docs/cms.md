@@ -2,6 +2,24 @@
 
 主题的写作后台是 [v7-cms](https://github.com/phishinqi/v7-cms)：一个开源的 Git 型编辑器，独立于本主题开发和发布。它读写 `content/` 里的文件，产出的字节和你手工编辑完全一致。
 
+## 三件事，别混起来
+
+用这个模板搭博客时，「v7-cms」其实是三个独立的东西。搞混了就会觉得仓库改名之后编辑器不知道去哪了：
+
+|                      | 是什么                                | 谁决定                                                         | 使用者要改吗                     |
+| -------------------- | ------------------------------------- | -------------------------------------------------------------- | -------------------------------- |
+| **编辑器二进制**     | `v7-cms.js` + `cms.css`，一个静态文件 | 模板作者钉的版本（`scripts/copy-cms.mjs` 的 `PINNED_VERSION`） | **不用改**，跟你的仓库名无关     |
+| **编辑器写哪个仓库** | 你博客的内容仓库                      | `pnpm setup --repo you/your-repo`                              | 要，否则后台会去写模板作者的仓库 |
+| **OAuth 中转**       | `functions/api/` 那个 Pages Function  | 你的域名 + 你自己的 GitHub OAuth App                           | 部署时配                         |
+
+第一项是**唯一**跟 `phishinqi/v7-cms` 有关的东西：构建时从那个仓库的 release 下载编辑器。你的仓库叫什么名字都无所谓——`pnpm build` 会自己去拉：
+
+```
+https://github.com/phishinqi/v7-cms/releases/download/v0.0.0-alpha.9/v7-cms.js
+```
+
+想升级编辑器，改 `scripts/copy-cms.mjs` 里的 `PINNED_VERSION`。想用自己 fork 的编辑器，设 `V7_CMS` 指向本地构建产物。
+
 ## 打开后台
 
 ```sh
@@ -30,13 +48,15 @@ pnpm dev:cms        # 启动站点；后台就在同一个进程里
 pnpm cms:config     # 手动重新生成
 ```
 
-生成脚本读三个可选环境变量，都有默认值：
+生成脚本读三个可选环境变量。**`pnpm setup` 会把它们的默认值改成你自己的**——下表是脚本出厂时的值，正常情况下你应该看不到它们生效：
 
-| 变量            | 默认值                        |
-| --------------- | ----------------------------- |
-| `CMS_REPO`      | `phishinqi/astro-theme-v7`    |
-| `CMS_BRANCH`    | `main`                        |
-| `CMS_AUTH_BASE` | `https://v7.soyonagasaki.com` |
+| 变量            | 说明                               | 出厂默认值（setup 会改）      |
+| --------------- | ---------------------------------- | ----------------------------- |
+| `CMS_REPO`      | 编辑器要写的仓库                   | `phishinqi/astro-theme-v7`    |
+| `CMS_BRANCH`    | 分支                               | `main`                        |
+| `CMS_AUTH_BASE` | OAuth 中转的地址，通常等于你的域名 | `https://v7.soyonagasaki.com` |
+
+跑过 `pnpm setup --repo 你/你的仓库 --url https://你的域名` 之后，这两项就是你的了。想在 CI 里临时覆盖，设同名环境变量即可（例如多环境部署）。
 
 `src/pages/admin/[...path].astro` 按环境选：`astro dev` 用本地那份（直接编辑工作目录），生产构建用 GitHub 那份（部署出去的页面够不到你的硬盘，只能走 API）。
 
@@ -54,13 +74,33 @@ pnpm cms:config     # 手动重新生成
 
 ### 线上登录：OAuth 配置
 
-1. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App：
-   - Homepage URL：`https://v7.soyonagasaki.com`
-   - Authorization callback URL：`https://v7.soyonagasaki.com/api/callback`
-2. 在 Pages 项目里加环境变量（Settings → Variables and Secrets）：`GITHUB_REPO`、`GITHUB_CLIENT_ID`，以及 secret 类型（加密）的 `GITHUB_CLIENT_SECRET`。
-3. 重新部署。
+**OAuth App 必须是使用者自己建的。** 它绑定你的域名和你的账号，所以 `pnpm setup` 会把 `wrangler.toml` 里的 `GITHUB_CLIENT_ID` 清成占位符——继承一个看起来是真的、其实是别人的 client id，比留个空占位符危险得多。
 
-`/api/*` 由 `functions/api/[[path]].js` 提供，和站点同域名一起部署，不需要单独的 Worker。**没配这三项时 `/admin/` 仍能打开，只是登录会失败**——个人访问令牌那条路不依赖它们。
+用你自己的域名（下面写成 `我的域名`）走一遍：
+
+1. 建 OAuth App：GitHub → Settings → Developer settings → OAuth Apps → **New OAuth App**
+   - **Application name**：随意，例如 `我的博客后台`
+   - **Homepage URL**：`https://我的域名`
+   - **Authorization callback URL**：`https://我的域名/api/callback`
+     ⚠️ 这一项必须**逐字符**对得上，包括 `/api` 前缀和结尾不能有斜杠，否则 GitHub 会拒绝回调。
+   - 建完拿到 **Client ID**，再 **Generate a new client secret** 拿到 **Client Secret**（只显示一次）
+2. 在 Cloudflare Pages 项目里加变量（Settings → Variables and Secrets）：
+   | 变量                   | 值                      | 类型               |
+   | ---------------------- | ----------------------- | ------------------ |
+   | `GITHUB_REPO`          | `你的用户名/你的仓库名` | 明文               |
+   | `GITHUB_CLIENT_ID`     | 上一步的 Client ID      | 明文               |
+   | `GITHUB_CLIENT_SECRET` | 上一步的 Client Secret  | **Secret（加密）** |
+3. 重新部署，然后打开 `https://我的域名/admin/`，应该出现「使用 GitHub 登录」。
+
+`/api/*` 由 `functions/api/[[path]].js` 提供，和站点同域名一起部署，不需要单独的 Worker。它用 `GITHUB_REPO` 检查**登录者对你这个仓库**有没有写权限——所以这一项填错的话，登录会以「没有写权限」失败。
+
+**没配这三项时 `/admin/` 仍能打开**，只是 GitHub 登录会失败。个人访问令牌那条路不需要它们：
+
+1. GitHub → Settings → Developer settings → **Personal access tokens** → Fine-grained tokens → Generate new token
+2. **Repository access** 只勾你的博客仓库；**Permissions → Contents** 设为 **Read and write**
+3. 打开 `/admin/`，切到 **访问令牌** 标签，粘贴
+
+这条路不用建 OAuth App、不用配环境变量，适合自己一个人用。OAuth 适合有多个作者、或者不想让作者碰令牌的情况。
 
 ### 预览与内联编辑
 

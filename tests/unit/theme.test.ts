@@ -140,6 +140,21 @@ describe('the template guard', () => {
     // The sample author links to this template's repository, and that link reaches every copy's
     // author page — a link back to the template presented as the site owner's own.
     expect(script).toContain('astro-theme-v7');
+    // `wrangler.toml` names the template's repository and its OAuth client id. A copy that kept
+    // them would sign its authors in through somebody else's OAuth app, and the relay would check
+    // write access to somebody else's repository.
+    expect(script).toContain('wrangler.toml');
+    expect(script).toContain('GITHUB_CLIENT_ID');
+  });
+
+  it('ships a placeholder rather than a real OAuth client id', async () => {
+    // A real-looking client id in a template is worse than an obvious placeholder: a copy would
+    // silently authenticate against an app it does not own.
+    const { readFile } = await import('node:fs/promises');
+    const { resolve } = await import('node:path');
+    const wrangler = await readFile(resolve('wrangler.toml'), 'utf8');
+    const clientId = /^GITHUB_CLIENT_ID = "([^"]*)"/m.exec(wrangler)?.[1];
+    expect(clientId).toBe('replace-with-oauth-client-id');
   });
 
   it('documents how to obtain the theme', async () => {

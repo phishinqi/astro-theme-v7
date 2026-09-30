@@ -116,6 +116,29 @@ for (const entry of authors.authors) {
   entry.links = (entry.links ?? []).filter((link) => !String(link.href).includes('astro-theme-v7'));
 }
 
+// ---- deploy configuration -------------------------------------------------------------------
+/**
+ * `wrangler.toml` carries deploy settings, and the template's copy of it names the template's
+ * repository and its OAuth client id. A copy that kept those would sign its authors in through
+ * somebody else's OAuth app, and the relay would check write access to somebody else's repository.
+ *
+ * Rewritten rather than deleted: the file also holds the project name and build output, and
+ * removing it would silently change how a deploy behaves.
+ */
+const wranglerPath = resolve('wrangler.toml');
+const wrangler = await readFile(wranglerPath, 'utf8').catch(() => undefined);
+if (wrangler) {
+  const [owner, repo] = (cms.backend.repo ?? '').split('/');
+  const rewritten = wrangler
+    .replace(/^name = .*$/m, `name = ${JSON.stringify(repo ?? 'v7-blog')}`)
+    .replace(/^GITHUB_REPO = .*$/m, `GITHUB_REPO = ${JSON.stringify(cms.backend.repo ?? '')}`)
+    // Left as a placeholder on purpose: the value is account-specific, and a stale one that looks
+    // real is worse than an obvious one that does not.
+    .replace(/^GITHUB_CLIENT_ID = .*$/m, 'GITHUB_CLIENT_ID = "replace-with-oauth-client-id"');
+  if (rewritten !== wrangler) await writeFile(wranglerPath, rewritten);
+  void owner;
+}
+
 /**
  * Content names authors explicitly, and the schema rejects an unknown one, so renaming the author
  * without this leaves every post referencing an id that no longer exists — the build fails with

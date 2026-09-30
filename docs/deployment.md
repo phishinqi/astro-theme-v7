@@ -2,8 +2,12 @@
 
 ## 部署前
 
-1. 使用 Node.js 24.16.0 / pnpm 12.5.1 干净安装：`pnpm install --frozen-lockfile`。
-2. 修改 `site.config.json` 的真实域名、作者、简介、社交链接。不要让 `example.com` 进入正式 canonical、RSS、站点地图和分享信息。
+1. 使用 Node.js 24.16.0 / pnpm 12.5.1 干净安装：`pnpm install`。
+2. **先跑 `pnpm setup`**，把副本里的域名、作者和仓库换成你自己的：
+   ```sh
+   pnpm setup -- --url https://你的域名 --repo 你/你的仓库 --author 你
+   ```
+   跳过这一步的话，正式产物的 canonical、RSS 和站点地图会声称是**模板作者**的域名，写作后台也会去写他的仓库。没跑 setup 时 `pnpm build` 会直接报错拦住你。
 3. 替换示例文章、关于页及默认分享图；确认日期时区、草稿状态。
 4. 运行 `pnpm verify`，检查浅深色、移动端与无 JavaScript 下的文章阅读。
 5. 由站点所有者创建远程仓库，提交源码与锁文件。不提交 `node_modules/`、`.astro/` 或 `dist/`。
@@ -18,16 +22,20 @@
 - Production branch：`main`
 - 环境变量：`NODE_VERSION=24.16.0`、`PNPM_VERSION=12.5.1`
 
-## 自定义域：v7.soyonagasaki.com
+## 绑定自定义域
 
-1. 把 `soyonagasaki.com` 添加到 Cloudflare（Sites → Add a site），按提示把域名的 NS 记录改到 Cloudflare 分配的地址。NS 切换要在域名注册商处完成。
-2. 进入 Pages 项目 → **Custom domains** → **Set up a custom domain**，填写 `v7.soyonagasaki.com`。
-3. 因为 `soyonagasaki.com` 已在同一个 Cloudflare 账户下，Pages 会自动创建所需的 DNS 记录（一条指向 `<project>.pages.dev` 的 `CNAME`，记录名 `v7`），不需要手工添加。
-4. 等证书签发完成（通常几分钟），访问 `https://v7.soyonagasaki.com/` 确认。
+下面用 `我的域名` 和 `blog.我的域名` 代指你自己买的域名和想用的子域。
 
-若域名托管在别处、要手工添加记录：类型 `CNAME`、名称 `v7`、目标 `<project>.pages.dev`、代理状态**已代理**（橙色云）。
+1. 把**根域名**（例如 `我的域名`，不带子域前缀）添加到 Cloudflare（Sites → Add a site），按提示把 NS 记录改到 Cloudflare 分配的地址。**NS 切换只能在域名注册商处完成**，Cloudflare 改不了。
+2. 进入 Pages 项目 → **Custom domains** → **Set up a custom domain**，填 `blog.我的域名`。
+3. 如果根域名已在**同一个** Cloudflare 账户下，Pages 会自动建好 DNS 记录（一条指向 `<项目名>.pages.dev` 的 `CNAME`，记录名 `blog`），不用手工加。
+4. 等证书签发（通常几分钟），访问 `https://blog.我的域名/` 确认。
 
-写作后台由 `functions/api/` 提供 GitHub 登录与可选 R2 图片接口，和站点同域名、一起部署，不需要单独的 Worker。环境变量：`GITHUB_REPO`、`GITHUB_CLIENT_ID`、secret `GITHUB_CLIENT_SECRET`；R2 模式再加 `MEDIA` 绑定和 `PUBLIC_MEDIA_URL`。
+若域名托管在别处、要手工添加：类型 `CNAME`、名称**只填子域前缀**（`blog`，不是 `blog.我的域名`，否则会变成 `blog.我的域名.我的域名`）、目标 `<项目名>.pages.dev`、代理状态**已代理**（橙色云）。
+
+⚠️ **域名和 `pnpm setup --url` 必须一致。** 改域名要重跑 setup 并重新构建，否则 canonical、RSS 和 sitemap 还是旧域名。
+
+写作后台由 `functions/api/` 提供 GitHub 登录与可选 R2 图片接口，和站点同域名、一起部署，不需要单独的 Worker。环境变量：`GITHUB_REPO`（你的仓库）、`GITHUB_CLIENT_ID`（你自己的 OAuth App）、secret `GITHUB_CLIENT_SECRET`；R2 模式再加 `MEDIA` 绑定和 `PUBLIC_MEDIA_URL`。**完整步骤见 [写作后台文档](cms.md#线上登录oauth-配置)。**
 
 `package.json` 的 packageManager 与 `.node-version` 也声明了工具链版本。在构建日志确认实际版本，不要只依赖平台默认值。若所选构建镜像不能提供指定 pnpm，可在平台配置中关闭自动依赖安装（`SKIP_DEPENDENCY_INSTALL=1`），用以下显式构建命令：
 
