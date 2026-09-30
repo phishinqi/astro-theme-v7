@@ -13,7 +13,34 @@ pnpm dev:cms        # 启动站点；后台就在同一个进程里
 
 不需要额外的本地服务。旧后台那套代理进程已经取消：v7-cms 在浏览器里直接读写你选的文件夹。
 
-第一次打开会让你选一个仓库：
+第一次打开会让你选一个仓库。**具体给哪些选项，取决于当前用的是哪份配置。**
+
+### 两份配置，只差一行
+
+后台的配置来自两个文件，它们的区别只有 `backend` 一项：
+
+| 文件                     | backend                    | 什么时候用            |
+| ------------------------ | -------------------------- | --------------------- |
+| `cms.config.json`        | `local`（本机文件夹/代理） | `pnpm dev` 本地写作   |
+| `cms.config.github.json` | `github`（仓库 API）       | `pnpm build` 线上部署 |
+
+**不要手工维护第二份文件。** 它由 `scripts/cms-config-github.mjs` 从第一份生成，`pnpm build` 会自动跑一次：
+
+```sh
+pnpm cms:config     # 手动重新生成
+```
+
+生成脚本读三个可选环境变量，都有默认值：
+
+| 变量            | 默认值                        |
+| --------------- | ----------------------------- |
+| `CMS_REPO`      | `phishinqi/astro-theme-v7`    |
+| `CMS_BRANCH`    | `main`                        |
+| `CMS_AUTH_BASE` | `https://v7.soyonagasaki.com` |
+
+`src/pages/admin/[...path].astro` 按环境选：`astro dev` 用本地那份（直接编辑工作目录），生产构建用 GitHub 那份（部署出去的页面够不到你的硬盘，只能走 API）。
+
+### 三种连接方式
 
 | 方式       | 需要什么                     | 哪些浏览器能用                     |
 | ---------- | ---------------------------- | ---------------------------------- |
@@ -21,9 +48,25 @@ pnpm dev:cms        # 启动站点；后台就在同一个进程里
 | 本地代理   | `npx @v7-cms/proxy --root .` | 全部                               |
 | GitHub     | 一个令牌，或走中转的 OAuth   | 全部                               |
 
-**本机文件夹**最省事：选一次会被记住，编辑直接写进工作目录，`git status` 里立刻能看到改动。权限每次访问会重新申请，这是浏览器的要求。
+**本机文件夹**最省事：选一次会被记住，编辑直接写进工作目录，`git status` 里立刻能看到改动。权限每次访问会重新申请，这是浏览器的要求。只有本地那份配置会给这个选项。
 
-**GitHub** 适合线上写作。用个人访问令牌（fine-grained，只勾这一个仓库、只给 Contents 读写）就能用；想用账号登录则需要一个保存 client secret 的小中转，步骤见 [v7-cms 的认证文档](https://github.com/phishinqi/v7-cms/blob/main/docs/authentication.md)。中转可以直接复用主题里的 `functions/api/[[path]].js`。
+**GitHub** 是线上用的。部署后的 `/admin/` 只会给这一个入口。用个人访问令牌（fine-grained，只勾这一个仓库、只给 Contents 读写）可以立刻用；想让作者用 GitHub 账号登录，需要下面的 OAuth 配置。
+
+### 线上登录：OAuth 配置
+
+1. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App：
+   - Homepage URL：`https://v7.soyonagasaki.com`
+   - Authorization callback URL：`https://v7.soyonagasaki.com/api/callback`
+2. 在 Pages 项目里加环境变量（Settings → Variables and Secrets）：`GITHUB_REPO`、`GITHUB_CLIENT_ID`，以及 secret 类型（加密）的 `GITHUB_CLIENT_SECRET`。
+3. 重新部署。
+
+`/api/*` 由 `functions/api/[[path]].js` 提供，和站点同域名一起部署，不需要单独的 Worker。**没配这三项时 `/admin/` 仍能打开，只是登录会失败**——个人访问令牌那条路不依赖它们。
+
+### 界面语言
+
+后台界面跟随配置里的 `locale`。本仓库是 `zh-CN`，所以侧边栏、连接页、保存按钮和提示都是中文。改 `locale` 会同时影响本地和线上两份配置（生成脚本会带上）。
+
+界面语言和**内容语言**是两件事：`locale` 只管编辑器自己的文案，文章的多语言字段仍按值里实际存在的语言逐个渲染。
 
 ## 正文：两套编辑器
 
@@ -63,7 +106,7 @@ pnpm dev:cms        # 启动站点；后台就在同一个进程里
 
 ## 界面
 
-界面语言是简体中文，由 v7-cms 自带，不需要额外的语言包。外观沿用主题的纸白、陶土色与衬线标题，通过设计令牌配置，不依赖内部类名，升级不会失效。
+界面语言由 v7-cms 自带（`locale`），不需要额外的语言包。外观沿用主题的纸白、陶土色与衬线标题，通过设计令牌配置，不依赖内部类名，升级不会失效。
 
 ## 草稿
 

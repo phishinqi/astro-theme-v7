@@ -49,11 +49,16 @@ try {
   const inlined = JSON.parse(
     /<script[^>]*id="v7-config"[^>]*>([\s\S]*?)<\/script>/.exec(admin)[1].replace(/\u003c/g, '<'),
   );
-  // The editor page inlines cms.config.json as written; it does not merge site.config.json's
-  // media block the way the removed Decap builder did. So this asserts the editor's own media
-  // settings survived the variant, not that they tracked site.config.json.
+  // A production build serves the GitHub backend, because a deployed page has no working tree to
+  // reach through the File System Access API. The media settings come from cms.config.json, which
+  // is not merged with site.config.json the way the removed Decap builder used to do.
   assert(inlined.media.provider === 'repo', 'editor media provider changed unexpectedly');
   assert(inlined.media.exif === true, 'editor exif setting changed unexpectedly');
+  assert(
+    inlined.backend?.name === 'github',
+    'the editor must ship the github backend in a production build',
+  );
+  assert(inlined.locale === 'zh-CN', 'the editor chrome locale was not carried into the build');
   const settings = inlined.collections.find((collection) => collection.name === 'settings');
   assert(settings, 'the settings collection is missing from the editor config');
   assert(

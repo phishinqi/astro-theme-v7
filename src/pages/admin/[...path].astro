@@ -1,10 +1,16 @@
 ---
-import config from '../../../cms.config.json';
+import localConfig from '../../../cms.config.json';
+import hostedConfig from '../../../cms.config.github.json';
 import { siteConfig } from '../../site.config';
 // The writing editor. `cms.enabled: false` removes the route and the footer link with it.
 export function getStaticPaths() {
   return siteConfig.cms.enabled ? [{ params: { path: undefined } }] : [];
 }
+// `astro dev` edits the working tree through the File System Access API, which needs no server and
+// no credentials. A production build has no working tree to reach, so it ships the GitHub backend
+// instead: that is the only way to write to the repository from a deployed page. The two differ
+// only in `backend`, and scripts/cms-config-github.mjs generates the second from the first.
+const config = import.meta.env.DEV ? localConfig : hostedConfig;
 ---
 
 <!doctype html>
@@ -19,7 +25,7 @@ export function getStaticPaths() {
       is:inline
       type="application/json"
       id="v7-config"
-      set:html={JSON.stringify(config).replace(/</g, '\\u003c')}
+      set:html={JSON.stringify(config).replace(/</g, '\u003c')}
     />
   </head>
   <body>
