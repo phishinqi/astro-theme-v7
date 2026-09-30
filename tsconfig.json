@@ -7,7 +7,7 @@
     "playwright-report",
     "test-results",
     "public/admin/vendor",
-    "public/cms"
+    "public/admin"
   ],
   "compilerOptions": {
     "jsx": "react-jsx",

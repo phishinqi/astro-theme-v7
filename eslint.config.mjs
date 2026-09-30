@@ -16,7 +16,7 @@ export default defineConfig(
       'test-results/**',
       'coverage/**',
       'public/admin/vendor/**',
-      'public/cms/**',
+      'public/admin/**',
       '.reports/**',
       '.wrangler/**',
       '.scratch/**',

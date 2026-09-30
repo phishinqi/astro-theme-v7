@@ -22,7 +22,7 @@ Use explicit ISO dates with time zones. Draft and future content is excluded fro
 
 ## Editing and media
 
-Decap is bundled locally and only loaded by the admin page. Plain Markdown supports source and visual editing. Complex markup, equations and Mermaid use source mode; MDX always uses source editing and is not executed inside the CMS preview.
+Writing happens in [v7-cms](https://github.com/phishinqi/v7-cms), a separate editor that this theme does not bundle. `pnpm build` copies its two build artifacts into public/admin and the admin page mounts them; the editor itself never ships with the site. Plain Markdown supports source and visual editing, and the editor picks the mode per file. Complex markup, equations and Mermaid use source mode; MDX always uses source editing and is not executed inside the preview.
 
 GitHub media is the default: uploads live in public/images/uploads. R2 is optional. Set media.provider to github or r2; switching does not migrate old images. Never put secrets in site.config.json.
 

@@ -1,4 +1,4 @@
-// Copies the editor into public/cms/ so the blog can serve it.
+// Copies the editor into public/admin/ so the theme can serve it at /admin/.
 //
 // The editor lives in its own repository and is consumed here as a build artifact, which is what
 // keeps this theme free of its toolchain.
@@ -20,7 +20,7 @@ import { join, resolve } from 'node:path';
 const PINNED_VERSION = '0.0.0-alpha.1';
 const RELEASE = `https://github.com/phishinqi/v7-cms/releases/download/v${PINNED_VERSION}`;
 
-const destination = 'public/cms';
+const destination = 'public/admin';
 const REQUIRED = ['v7-cms.js', 'cms.css'];
 
 /** A local checkout, if one is around. */

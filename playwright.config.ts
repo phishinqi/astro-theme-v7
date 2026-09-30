@@ -1,7 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 // Override when these ports are taken, e.g. by a dev server you keep running while testing.
 const port = Number(process.env.V7_TEST_PORT || 4321);
-const proxyPort = Number(process.env.DECAP_PROXY_PORT || 8081);
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
@@ -15,19 +14,10 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: [
-    {
-      command: `pnpm preview --host 127.0.0.1 --port ${port}`,
-      url: `http://127.0.0.1:${port}`,
-      reuseExistingServer: !process.env.CI,
-      timeout: 60000,
-    },
-    {
-      command: 'pnpm cms:local',
-      env: { PORT: String(proxyPort) },
-      port: proxyPort,
-      reuseExistingServer: !process.env.CI,
-      timeout: 60000,
-    },
-  ],
+  webServer: {
+    command: `pnpm preview --host 127.0.0.1 --port ${port}`,
+    url: `http://127.0.0.1:${port}`,
+    reuseExistingServer: !process.env.CI,
+    timeout: 60000,
+  },
 });

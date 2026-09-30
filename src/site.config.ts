@@ -90,13 +90,9 @@ const parsed = z
       license: z.enum(licensePresets).default('all-rights-reserved'),
       licenseText: z.string().default(''),
     }),
-    cms: z.object({
-      enabled: z.boolean(),
-      repo: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
-      branch: z.string().min(1),
-      authURL: z.string(),
-      localBackend: z.boolean(),
-    }),
+    // Whether the theme builds the editor page and links to it. Everything else about the editor
+    // lives in cms.config.json, which the editor itself reads.
+    cms: z.object({ enabled: z.boolean() }),
   })
   .parse(raw);
 if (!Object.hasOwn(authorRegistry, parsed.defaultAuthor))

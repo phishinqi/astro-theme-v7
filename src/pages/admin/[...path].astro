@@ -1,10 +1,10 @@
 ---
+import config from '../../../cms.config.json';
 import { siteConfig } from '../../site.config';
-import { cmsConfig, adminSettings } from '../../lib/cms-config';
+// The writing editor. `cms.enabled: false` removes the route and the footer link with it.
 export function getStaticPaths() {
   return siteConfig.cms.enabled ? [{ params: { path: undefined } }] : [];
 }
-const config = cmsConfig();
 ---
 
 <!doctype html>
@@ -14,27 +14,21 @@ const config = cmsConfig();
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <title>V7 · 写作后台</title>
-    <link rel="stylesheet" href="/admin/theme.css" />
-    <script is:inline>
-      window.CMS_MANUAL_INIT = true;
-    </script>
+    <link rel="stylesheet" href="/admin/cms.css" />
+    <script
+      is:inline
+      type="application/json"
+      id="v7-config"
+      set:html={JSON.stringify(config).replace(/</g, '\\u003c')}
+    />
   </head>
   <body>
     <noscript>写作后台需要 JavaScript。</noscript>
-    <div id="cms-loading">正在加载写作后台…</div>
-    <script
-      is:inline
-      type="application/json"
-      id="cms-config"
-      set:html={JSON.stringify(config).replace(/</g, '\\u003c')}
-    />
-    <script
-      is:inline
-      type="application/json"
-      id="v7-admin"
-      set:html={JSON.stringify(adminSettings()).replace(/</g, '<')}
-    />
-    <script is:inline src="/admin/vendor/decap-cms.js"></script>
-    <script is:inline type="module" src="/admin/init.js"></script>
+    <div id="cms-root"></div>
+    <script is:inline type="module">
+      import { mount } from '/admin/v7-cms.js';
+      const config = JSON.parse(document.getElementById('v7-config').textContent);
+      mount({ container: '#cms-root', config });
+    </script>
   </body>
 </html>

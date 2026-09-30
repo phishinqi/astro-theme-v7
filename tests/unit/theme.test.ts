@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import {
   validateCategoryTree,
@@ -6,7 +7,6 @@ import {
   siteConfig,
 } from '../../src/site.config';
 import { postSchema } from '../../src/lib/post-schema';
-import { cmsConfig } from '../../src/lib/cms-config';
 import { moduleSchema } from '../../src/lib/module-schema';
 const label = { 'zh-CN': '示例', en: 'Example' };
 describe('theme content contract', () => {
@@ -60,16 +60,20 @@ describe('theme content contract', () => {
       }),
     ).toThrow();
   });
-  it('configures root content, dual storage and explicit MDX source editing', () => {
-    const config = cmsConfig();
-    expect(config.media_folder).toBe('public/images/uploads');
-    const posts = config.collections.filter((c) => c.name.startsWith('posts-')) as Array<{
-      folder: string;
-      fields: Array<{ name: string; widget: string }>;
-    }>;
-    expect(posts).toHaveLength(2);
-    expect(posts.every((c) => c.folder === 'content/posts')).toBe(true);
-    expect(posts[1]?.fields.find((f) => f.name === 'body')?.widget).toBe('text');
+  it('describes every content folder the theme has', () => {
+    const cms = JSON.parse(readFileSync('cms.config.json', 'utf8')) as {
+      collections: Array<{ name: string; kind: string; folder?: string }>;
+    };
+    const folders = cms.collections
+      .filter((collection) => collection.kind === 'fields' && collection.folder)
+      .map((collection) => collection.folder!);
+    for (const folder of folders) {
+      expect(existsSync(folder), `${folder} is named in cms.config.json but does not exist`).toBe(
+        true,
+      );
+    }
+    // The album collection is the reason this editor exists; losing it would be silent otherwise.
+    expect(cms.collections.some((collection) => collection.name === 'albums')).toBe(true);
   });
   it('requires valid module dates, statuses and gallery descriptions', () => {
     expect(() =>
