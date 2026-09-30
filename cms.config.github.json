@@ -15,11 +15,7 @@
     "exif": true
   },
   "locale": "zh-CN",
-  "preview": {
-    "devServerURL": "http://localhost:4321",
-    "pathTemplate": "/posts/{{slug}}/",
-    "editAttribute": "data-v7-field"
-  },
+  "preview": { "pathTemplate": "/posts/{{slug}}/", "editAttribute": "data-v7-field" },
   "collections": [
     {
       "kind": "fields",

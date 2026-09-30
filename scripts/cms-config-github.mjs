@@ -23,6 +23,17 @@ const REPO = process.env.CMS_REPO ?? 'phishinqi/astro-theme-v7';
 
 const source = JSON.parse(await readFile(SOURCE, 'utf8'));
 
+// `preview.devServerURL` points at the author's own machine, which is right for `pnpm dev` and
+// wrong for a deployed editor: the browser would try to reach the *visitor's* localhost and show
+// "connection refused". The deployed editor keeps the path template — a preview URL is still
+// useful — but gets no dev server, so the panel stays on the rendered Markdown view instead of an
+// iframe that cannot load. Anyone who does want to point a deployed editor at a local dev server
+// can set CMS_DEV_SERVER_URL.
+const DEV_SERVER_URL = process.env.CMS_DEV_SERVER_URL;
+const preview = { ...(source.preview ?? {}) };
+delete preview.devServerURL;
+if (DEV_SERVER_URL) preview.devServerURL = DEV_SERVER_URL;
+
 const hosted = {
   ...source,
   backend: {
@@ -32,12 +43,24 @@ const hosted = {
     authBase: AUTH_BASE,
     authEndpoint: AUTH_ENDPOINT,
   },
+  ...(Object.keys(preview).length ? { preview } : {}),
 };
 
 // Validation happens in the editor, but a typo here would only surface after a deploy.
 if (hosted.backend.repo !== REPO) throw new Error('repo was not applied');
 if (!/^https?:\/\//.test(hosted.backend.authBase)) {
   throw new Error(`authBase must be an absolute URL, got "${hosted.backend.authBase}"`);
+}
+// A relative or localhost dev server in the deployed config is the bug this guard exists for: it
+// compiles, deploys, and then refuses to connect in every visitor's browser.
+if (
+  hosted.preview?.devServerURL &&
+  !/^https?:\/\/(?!localhost|127\.0\.0\.1)/.test(hosted.preview.devServerURL)
+) {
+  throw new Error(
+    `The deployed editor cannot use "${hosted.preview.devServerURL}" as a dev server. Leave ` +
+      'CMS_DEV_SERVER_URL unset, or set it to a publicly reachable URL.',
+  );
 }
 
 // Formatted with the project's prettier config, because `pnpm format:check` covers this file and a
