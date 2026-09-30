@@ -1,4 +1,9 @@
 ---
+// Marks the element that renders each frontmatter field, so the editor's in-context mode can turn
+// a click on the page into a focus on the matching control. Must match `preview.editAttribute` in
+// cms.config.json. Development only: a published page has no editor to answer to, and the attribute
+// is omitted rather than renamed, so nothing extra reaches the output.
+const mark = (field: string) => (import.meta.env.DEV ? { 'data-v7-field': field } : {});
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
 import BaseLayout from './BaseLayout.astro';
@@ -35,10 +40,15 @@ const { data } = post;
       >
         {localized(siteConfig.categories[data.category]!.title)}
       </a>
-      <h1 data-pagefind-meta="title" data-no-translate>
+      <h1 data-pagefind-meta="title" data-no-translate {...mark('title')}>
         {data.title}
       </h1>
-      <p class="article-description" data-pagefind-meta="description" data-no-translate>
+      <p
+        class="article-description"
+        data-pagefind-meta="description"
+        data-no-translate
+        {...mark('description')}
+      >
         {data.description}
       </p>
       <div class="post-meta" data-pagefind-ignore>
