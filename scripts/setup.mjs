@@ -108,6 +108,15 @@ if (args.values['author-name']) {
 }
 
 /**
+ * The sample author links to this template's repository, which would otherwise appear on every
+ * copy's author page — a link back to the template presented as the site owner's own. Cleared
+ * rather than guessed at; the author adds their own links.
+ */
+for (const entry of authors.authors) {
+  entry.links = (entry.links ?? []).filter((link) => !String(link.href).includes('astro-theme-v7'));
+}
+
+/**
  * Content names authors explicitly, and the schema rejects an unknown one, so renaming the author
  * without this leaves every post referencing an id that no longer exists — the build fails with
  * "Unknown author" and the message points at the data file rather than at the content.

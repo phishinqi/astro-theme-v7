@@ -137,6 +137,9 @@ describe('the template guard', () => {
     expect(script).toContain('authors:');
     // Deleting the marker is what lets the build run; without it a configured site stays blocked.
     expect(script).toContain('rm(resolve(MARKER)');
+    // The sample author links to this template's repository, and that link reaches every copy's
+    // author page — a link back to the template presented as the site owner's own.
+    expect(script).toContain('astro-theme-v7');
   });
 
   it('documents how to obtain the theme', async () => {
