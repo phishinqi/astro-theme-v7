@@ -128,3 +128,58 @@ it('answers unknown routes with 404 and hides internal failures', async () => {
   const broken = await serve(new Request('https://example.com/api/auth'), {} as typeof env);
   expect([302, 503]).toContain(broken.status);
 });
+
+it('hands the token to the opener without waiting to be asked', async () => {
+  // The editor treats `authorizing:github` as "the window is alive, focus it" and never replies,
+  // so a callback page that waited for a reply hung on "Returning to the editor…" forever.
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('login/oauth/access_token')) {
+        return new Response(JSON.stringify({ access_token: 'gho_TESTTOKEN' }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ permissions: { push: true } }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }),
+  );
+
+  const response = await handle(
+    new Request('https://example.com/api/callback?code=abc&state=S1', {
+      headers: { Cookie: 'v7-oauth-state=S1' },
+    }),
+    { ...env, GITHUB_CLIENT_SECRET: 'secret' },
+  );
+  expect(response.status).toBe(200);
+  const html = await response.text();
+
+  // Run the inline script the page ships, against a stand-in opener.
+  const script = /<script nonce="[^"]*">([\s\S]*?)<\/script>/.exec(html)?.[1];
+  expect(script, 'the callback page must carry its handshake script').toBeTruthy();
+  const posted: Array<{ data: string; target: string }> = [];
+  const fakeWindow = {
+    opener: { postMessage: (data: string, target: string) => posted.push({ data, target }) },
+    close: () => {},
+  };
+  new Function('window', 'setInterval', 'clearInterval', 'setTimeout', script!)(
+    fakeWindow,
+    (fn: () => void) => {
+      fn();
+      return 1;
+    },
+    () => {},
+    () => {},
+  );
+
+  expect(posted.length).toBeGreaterThan(0);
+  expect(posted[0]!.target).toBe(site);
+  const prefix = 'authorization:github:success:';
+  expect(posted[0]!.data.startsWith(prefix)).toBe(true);
+  expect(JSON.parse(posted[0]!.data.slice(prefix.length))).toMatchObject({
+    token: 'gho_TESTTOKEN',
+    provider: 'github',
+  });
+});

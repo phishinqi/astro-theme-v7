@@ -74,19 +74,29 @@ export async function handle(request, env) {
     ).replace(/</g, '\\u003c');
     const target = JSON.stringify(origin);
     const nonce = crypto.randomUUID();
-    return new Response(
-      `<!doctype html><meta charset="utf-8"><title>GitHub authorization</title><p>Returning to the editor…</p><script nonce="${nonce}">const target=${target};window.addEventListener('message',function receive(e){if(e.origin!==target||e.source!==window.opener)return;window.removeEventListener('message',receive);window.opener.postMessage(${message},target);window.close();});window.opener?.postMessage('authorizing:github',target);</script>`,
-      {
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'no-store',
-          'Referrer-Policy': 'no-referrer',
-          'Content-Security-Policy': `default-src 'none'; script-src 'nonce-${nonce}'; frame-ancestors 'none'`,
-          'Set-Cookie':
-            'v7-oauth-state=; HttpOnly; Secure; SameSite=Lax; Path=/api/callback; Max-Age=0',
-        },
+    // The reply is sent unprompted. Waiting for the editor to ask first would deadlock: the editor
+    // treats `authorizing:github` as "the window is alive, focus it" and never answers, so a
+    // listener gated on a reply from it never fires and the popup hangs on this page.
+    const body =
+      `<!doctype html><meta charset="utf-8"><title>GitHub authorization</title>` +
+      `<p>Returning to the editor…</p><script nonce="${nonce}">` +
+      `const target=${target},message=${message};` +
+      `function send(){try{window.opener.postMessage(message,target)}catch(e){}}` +
+      // `opener` can be null when the popup was opened with noopener, and the editor may not have
+      // attached its listener yet, so the message is repeated briefly rather than sent once.
+      `send();let tries=0;const t=setInterval(function(){if(++tries>20){clearInterval(t);return}send()},150);` +
+      `setTimeout(function(){clearInterval(t);window.close()},4000);` +
+      `</script>`;
+    return new Response(body, {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'Referrer-Policy': 'no-referrer',
+        'Content-Security-Policy': `default-src 'none'; script-src 'nonce-${nonce}'; frame-ancestors 'none'`,
+        'Set-Cookie':
+          'v7-oauth-state=; HttpOnly; Secure; SameSite=Lax; Path=/api/callback; Max-Age=0',
       },
-    );
+    });
   }
   if (url.pathname !== '/api/media') return json({ error: 'Not found' }, 404);
   // Same-origin only: browsers always send Origin on POST, and the editor sends it on GET too.
