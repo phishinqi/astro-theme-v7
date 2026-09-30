@@ -15,8 +15,19 @@
 - Build command：`pnpm build`
 - Build output directory：`dist`
 - Root directory：仓库根目录
-- Production branch：由站点所有者选择
+- Production branch：`main`
 - 环境变量：`NODE_VERSION=24.16.0`、`PNPM_VERSION=12.5.1`
+
+## 自定义域：v7.soyonagasaki.com
+
+1. 把 `soyonagasaki.com` 添加到 Cloudflare（Sites → Add a site），按提示把域名的 NS 记录改到 Cloudflare 分配的地址。NS 切换要在域名注册商处完成。
+2. 进入 Pages 项目 → **Custom domains** → **Set up a custom domain**，填写 `v7.soyonagasaki.com`。
+3. 因为 `soyonagasaki.com` 已在同一个 Cloudflare 账户下，Pages 会自动创建所需的 DNS 记录（一条指向 `<project>.pages.dev` 的 `CNAME`，记录名 `v7`），不需要手工添加。
+4. 等证书签发完成（通常几分钟），访问 `https://v7.soyonagasaki.com/` 确认。
+
+若域名托管在别处、要手工添加记录：类型 `CNAME`、名称 `v7`、目标 `<project>.pages.dev`、代理状态**已代理**（橙色云）。
+
+写作后台由 `functions/api/` 提供 GitHub 登录与可选 R2 图片接口，和站点同域名、一起部署，不需要单独的 Worker。环境变量：`GITHUB_REPO`、`GITHUB_CLIENT_ID`、secret `GITHUB_CLIENT_SECRET`；R2 模式再加 `MEDIA` 绑定和 `PUBLIC_MEDIA_URL`。
 
 `package.json` 的 packageManager 与 `.node-version` 也声明了工具链版本。在构建日志确认实际版本，不要只依赖平台默认值。若所选构建镜像不能提供指定 pnpm，可在平台配置中关闭自动依赖安装（`SKIP_DEPENDENCY_INSTALL=1`），用以下显式构建命令：
 
@@ -26,7 +37,7 @@ npm install --global pnpm@12.5.1 && pnpm install --frozen-lockfile && pnpm build
 
 博客前台是纯静态部署，不需要 Astro Cloudflare adapter。`functions/` 目录由 Pages 自动部署为 Pages Functions，只处理 `/api/*`：GitHub 登录和可选的 R2 图片接口。`404.html` 用于 Pages 的缺失页面响应，不需要把所有请求重写到首页的 SPA fallback。
 
-生产构建需要安装 devDependencies，因为后台资源是从固定版本的 Decap 分发包复制的。请关闭草稿分支的公开预览部署。
+生产构建会从 v7-cms 的 release 取写作后台（`scripts/copy-cms.mjs`），所以构建机需要能访问 GitHub。构建脚本按顺序找：`V7_CMS` 指定的路径、同级的 v7-cms 检出、最后是该版本 release。若要在离线环境构建，把后台产物预先放进 `public/admin/`。请关闭草稿分支的公开预览部署。
 
 ## 写作后台上线
 

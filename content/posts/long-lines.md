@@ -35,3 +35,9 @@ const intentionallyLongExample = {
 abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
 
 读者应该始终可以完整取得内容，即使内容没有遵循我们最喜欢的长度。
+
+## 规则本身
+
+要点只有一条：**让溢出发生在内容自己的容器里，而不是页面上。** 代码块和表格允许横向滚动，段落和标题允许断行，两者都不会让整页变宽。
+
+这也是为什么这里不把字号调小来「塞下」内容。压缩字号能让截图好看，代价是真实读者要在手机上辨认更小的字——为了整齐牺牲可读性，方向反了。

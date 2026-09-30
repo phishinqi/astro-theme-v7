@@ -22,7 +22,7 @@ test('all navigation, pagination and metadata work', async ({ page }) => {
     await expect(page.locator('main h1')).toHaveCount(1);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       'href',
-      `https://example.com${path.replace('数学', '%E6%95%B0%E5%AD%A6')}`,
+      `https://v7.soyonagasaki.com${path.replace('数学', '%E6%95%B0%E5%AD%A6')}`,
     );
   }
   await page.goto('/posts/');

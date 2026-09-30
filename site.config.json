@@ -1,6 +1,6 @@
 {
   "title": "V7",
-  "siteURL": "https://example.com",
+  "siteURL": "https://v7.soyonagasaki.com",
   "locale": "zh-CN",
   "timeZone": "Asia/Shanghai",
   "description": {
@@ -50,11 +50,7 @@
   "socialLinks": [
     {
       "label": "GitHub",
-      "href": "https://github.com"
-    },
-    {
-      "label": "Email",
-      "href": "mailto:hello@example.com"
+      "href": "https://github.com/phishinqi"
     }
   ],
   "home": {
@@ -83,11 +79,7 @@
     "licenseText": ""
   },
   "cms": {
-    "enabled": true,
-    "repo": "phishinqi/astro-theme-v7",
-    "branch": "main",
-    "authURL": "",
-    "localBackend": true
+    "enabled": true
   },
   "moreNav": [
     {

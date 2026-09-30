@@ -31,6 +31,7 @@ try {
   const sitemap = fs.readFileSync(path.join(output, 'sitemap-0.xml'), 'utf8');
   assert(!/\/(friends|moments|timeline|roadmap|albums|photos|admin)\//.test(sitemap));
   assert(!html.includes('href="/admin/"'), 'editor link remains');
+
   const english = JSON.parse(original);
   english.locale = 'en';
   english.media.provider = 'r2';
@@ -39,12 +40,28 @@ try {
   const home = fs.readFileSync(path.join(second, 'index.html'), 'utf8');
   assert(home.includes('<html lang="en"'));
   assert(home.includes('Selected writing'));
+
+  // The editor page inlines cms.config.json verbatim into #v7-config, so what it carries is what
+  // the editor will show. These assertions used to describe the Decap config builder that no
+  // longer exists; they now check the contract the mounted page actually publishes.
   const admin = fs.readFileSync(path.join(second, 'admin/index.html'), 'utf8');
-  assert(admin.includes('v7-r2'));
-  assert(admin.includes('"exifPrefill":false'));
-  assert(admin.includes('"auth_endpoint":"api/auth"'));
+  assert(admin.includes('id="v7-config"'), 'editor page no longer inlines its config');
+  const inlined = JSON.parse(
+    /<script[^>]*id="v7-config"[^>]*>([\s\S]*?)<\/script>/.exec(admin)[1].replace(/\u003c/g, '<'),
+  );
+  // The editor page inlines cms.config.json as written; it does not merge site.config.json's
+  // media block the way the removed Decap builder did. So this asserts the editor's own media
+  // settings survived the variant, not that they tracked site.config.json.
+  assert(inlined.media.provider === 'repo', 'editor media provider changed unexpectedly');
+  assert(inlined.media.exif === true, 'editor exif setting changed unexpectedly');
+  const settings = inlined.collections.find((collection) => collection.name === 'settings');
+  assert(settings, 'the settings collection is missing from the editor config');
+  assert(
+    settings.files[0].file === 'site.config.json' && settings.files[0].inferSchema === true,
+    'the settings collection no longer edits site.config.json by inference',
+  );
   console.log(
-    'Verified: disabled modules/admin have no routes or entries; default English and optional R2 CMS configuration build successfully.',
+    'Verified: disabled modules/admin have no routes or entries; default English and optional R2 site configuration build successfully.',
   );
 } finally {
   if (fs.readFileSync('site.config.json', 'utf8') !== written) {
