@@ -15,7 +15,11 @@
     "exif": true
   },
   "locale": "zh-CN",
-  "preview": { "pathTemplate": "/posts/{{slug}}/", "editAttribute": "data-v7-field" },
+  "preview": {
+    "pathTemplate": "/posts/{{slug}}/",
+    "editAttribute": "data-v7-field",
+    "devServerURL": "https://v7.soyonagasaki.com"
+  },
   "collections": [
     {
       "kind": "fields",

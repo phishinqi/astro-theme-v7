@@ -1,8 +1,11 @@
+# SAMEORIGIN rather than DENY: the editor at /admin/ embeds this site's own pages as the live
+# preview, and DENY made every one of them refuse to load in that frame. A third-party page
+# still cannot frame the site, which is the protection that matters.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  X-Frame-Options: DENY
+  X-Frame-Options: SAMEORIGIN
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 /pagefind/*

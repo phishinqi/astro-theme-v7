@@ -39,22 +39,40 @@ test('the template marks exactly the fields the editor resolves picks against', 
   expect(template).toContain(`'${attribute}'`);
 });
 
-test('a production build carries no editing marks', async ({ page }) => {
-  // The marks are development-only: a published page has no editor to answer to.
+test('a production build carries the marks, so the deployed editor can find them', async ({
+  page,
+}) => {
+  // The deployed editor previews the deployed site, same-origin, so the marks have to be in the
+  // built HTML. A bare data attribute renders as nothing and Pagefind is told what to read.
   await page.goto('/posts/start-here/');
-  await expect(page.locator('[data-v7-field]')).toHaveCount(0);
-  await expect(page.locator('[data-v7-skip]')).toHaveCount(0);
+  await expect(page.locator('[data-v7-field="title"]')).toHaveCount(1);
+  await expect(page.locator('[data-v7-field="description"]')).toHaveCount(1);
 });
 
-test('the generated config drops the local dev server', async () => {
-  // A deployed editor that points at localhost makes every visitor's browser try to reach its own
-  // machine, which fails with "connection refused" and looks like a broken feature.
+test('the generated config previews the deployed site, never localhost', async () => {
+  // A deployed editor pointing at localhost makes every visitor's browser try to reach its own
+  // machine: "connection refused", which looks like a broken feature.
   const hosted = JSON.parse(await readFile(resolve('cms.config.github.json'), 'utf8')) as {
     preview?: { devServerURL?: string; editAttribute?: string };
+    backend?: { authBase?: string };
   };
-  expect(hosted.preview?.devServerURL).toBeUndefined();
-  // The rest of the preview settings survive, so a preview URL is still built.
+  const origin = hosted.preview?.devServerURL;
+  expect(origin, 'the deployed editor needs a preview origin').toBeTruthy();
+  expect(origin).not.toContain('localhost');
+  expect(origin).not.toContain('127.0.0.1');
+  // Same origin as the editor is what makes the frame embeddable and the bridge injectable.
+  expect(origin).toBe(hosted.backend?.authBase);
   expect(hosted.preview?.editAttribute).toBe('data-v7-field');
+});
+
+test('the site allows being framed by itself, which the editor depends on', async () => {
+  // Read from the file, not from a response: `_headers` is a Cloudflare Pages feature and
+  // `astro preview` does not apply it, so a request here would prove nothing either way. The live
+  // check is `curl -sI https://v7.soyonagasaki.com/posts/start-here/ | grep -i x-frame-options`.
+  const headers = await readFile(resolve('public/_headers'), 'utf8');
+  const value = /^\s*X-Frame-Options:\s*(\S+)/m.exec(headers)?.[1];
+  // DENY would make the editor's own preview iframe refuse to render the site.
+  expect(value?.toUpperCase()).toBe('SAMEORIGIN');
 });
 
 test('the built admin page contains no localhost reference', async ({ request }) => {

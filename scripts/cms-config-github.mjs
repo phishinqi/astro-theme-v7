@@ -23,16 +23,20 @@ const REPO = process.env.CMS_REPO ?? 'phishinqi/astro-theme-v7';
 
 const source = JSON.parse(await readFile(SOURCE, 'utf8'));
 
+// Where the deployed editor previews from.
+//
 // `preview.devServerURL` points at the author's own machine, which is right for `pnpm dev` and
-// wrong for a deployed editor: the browser would try to reach the *visitor's* localhost and show
-// "connection refused". The deployed editor keeps the path template — a preview URL is still
-// useful — but gets no dev server, so the panel stays on the rendered Markdown view instead of an
-// iframe that cannot load. Anyone who does want to point a deployed editor at a local dev server
-// can set CMS_DEV_SERVER_URL.
+// wrong for a build: the browser would try to reach the *visitor's* localhost and show "connection
+// refused". So it is replaced by the deployed site's own origin — same domain as the editor, so the
+// frame is same-origin, the editor can inject the bridge into it, and the site tab shows the real
+// published layout rather than nothing.
+//
+// `CMS_DEV_SERVER_URL` overrides it for anyone who would rather preview a local dev server.
 const DEV_SERVER_URL = process.env.CMS_DEV_SERVER_URL;
+const SITE_URL = process.env.CMS_SITE_URL ?? AUTH_BASE;
 const preview = { ...(source.preview ?? {}) };
 delete preview.devServerURL;
-if (DEV_SERVER_URL) preview.devServerURL = DEV_SERVER_URL;
+preview.devServerURL = DEV_SERVER_URL ?? SITE_URL;
 
 const hosted = {
   ...source,
@@ -52,14 +56,12 @@ if (!/^https?:\/\//.test(hosted.backend.authBase)) {
   throw new Error(`authBase must be an absolute URL, got "${hosted.backend.authBase}"`);
 }
 // A relative or localhost dev server in the deployed config is the bug this guard exists for: it
-// compiles, deploys, and then refuses to connect in every visitor's browser.
-if (
-  hosted.preview?.devServerURL &&
-  !/^https?:\/\/(?!localhost|127\.0\.0\.1)/.test(hosted.preview.devServerURL)
-) {
+// A localhost preview source in the deployed config is the bug this guard exists for: it compiles,
+// deploys, and only then fails, in a visitor's browser, with no clue in the build log.
+if (!/^https?:\/\/(?!localhost|127\.0\.0\.1)/.test(hosted.preview?.devServerURL ?? '')) {
   throw new Error(
-    `The deployed editor cannot use "${hosted.preview.devServerURL}" as a dev server. Leave ` +
-      'CMS_DEV_SERVER_URL unset, or set it to a publicly reachable URL.',
+    `The deployed editor cannot preview "${hosted.preview?.devServerURL}". Set CMS_SITE_URL to ` +
+      'the public origin of this site, or CMS_DEV_SERVER_URL to a publicly reachable dev server.',
   );
 }
 

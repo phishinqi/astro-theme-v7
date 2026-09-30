@@ -1,9 +1,13 @@
 ---
 // Marks the element that renders each frontmatter field, so the editor's in-context mode can turn
 // a click on the page into a focus on the matching control. Must match `preview.editAttribute` in
-// cms.config.json. Development only: a published page has no editor to answer to, and the attribute
-// is omitted rather than renamed, so nothing extra reaches the output.
-const mark = (field: string) => (import.meta.env.DEV ? { 'data-v7-field': field } : {});
+// cms.config.json.
+//
+// Emitted in production too, because the deployed editor previews the deployed site: the frame is
+// same-origin, so the editor injects the bridge into it and needs these marks to find. A bare
+// `data-` attribute is inert on its own — it is not rendered, not styled, and not indexed by
+// Pagefind, which only reads the elements it is told to.
+const mark = (field: string) => ({ 'data-v7-field': field });
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
 import BaseLayout from './BaseLayout.astro';
