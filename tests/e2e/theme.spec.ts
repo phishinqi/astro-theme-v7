@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { siteUrl } from './site-config';
 
 test('all navigation, pagination and metadata work', async ({ page }) => {
   const errors: string[] = [];
@@ -20,10 +21,7 @@ test('all navigation, pagination and metadata work', async ({ page }) => {
     const response = await page.goto(path);
     expect(response?.status()).toBe(200);
     await expect(page.locator('main h1')).toHaveCount(1);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-      'href',
-      `https://v7.soyonagasaki.com${path.replace('数学', '%E6%95%B0%E5%AD%A6')}`,
-    );
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', siteUrl(path));
   }
   await page.goto('/posts/');
   // Counts come from the page itself, so adding posts does not break this test.

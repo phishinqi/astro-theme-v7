@@ -121,7 +121,12 @@ describe('the template guard', () => {
     // repository, a copy would have nothing to trip the guard.
     const { existsSync } = await import('node:fs');
     const { resolve } = await import('node:path');
-    expect(existsSync(resolve('this-repository-is-a-template'))).toBe(true);
+    // `pnpm bootstrap` removes the marker from a configured copy. The source repository must ship
+    // it, while a copy that has completed setup must be allowed to run this same contract suite.
+    expect(
+      existsSync(resolve('this-repository-is-a-template')) ||
+        siteConfig.siteURL !== 'https://v7.soyonagasaki.com',
+    ).toBe(true);
   });
 
   it('ships a setup script that rewrites identity and clears the guard', async () => {

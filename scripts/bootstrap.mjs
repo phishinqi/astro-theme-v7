@@ -11,6 +11,7 @@
 import { glob, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { format, resolveConfig } from 'prettier';
 
 /**
  * pnpm forwards its own `--` as a literal argument: `pnpm bootstrap -- --url x` arrives here as
@@ -51,8 +52,12 @@ if (args.values.help) {
 const MARKER = 'this-repository-is-a-template';
 
 const read = async (path) => JSON.parse(await readFile(resolve(path), 'utf8'));
-const write = async (path, value) =>
-  writeFile(resolve(path), `${JSON.stringify(value, null, 2)}\n`);
+const write = async (path, value) => {
+  const filename = resolve(path);
+  const options = (await resolveConfig(filename)) ?? {};
+  const text = await format(JSON.stringify(value), { ...options, filepath: filename });
+  await writeFile(filename, text);
+};
 
 const site = await read('site.config.json');
 const authors = await read('data/authors.json');
@@ -60,9 +65,22 @@ const cms = await read('cms.config.github.json');
 
 // ---- origin ---------------------------------------------------------------------------------
 if (args.values.url) {
-  const origin = args.values.url.replace(/\/$/, '');
-  if (!/^https?:\/\//.test(origin)) {
-    console.error(`--url must be an absolute http(s) origin, got "${args.values.url}"`);
+  let origin;
+  try {
+    const parsed = new URL(args.values.url);
+    if (
+      !['http:', 'https:'].includes(parsed.protocol) ||
+      parsed.pathname !== '/' ||
+      parsed.search ||
+      parsed.hash
+    ) {
+      throw new Error('not an origin');
+    }
+    origin = parsed.origin;
+  } catch {
+    console.error(
+      `--url must be an absolute http(s) origin such as https://example.com, got "${args.values.url}"`,
+    );
     process.exit(1);
   }
   site.siteURL = origin;

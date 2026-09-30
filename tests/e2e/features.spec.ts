@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { siteUrl } from './site-config';
 
 test('interface language persists at the same URL and search follows it', async ({ page }) => {
   await page.goto('/about/');
@@ -86,7 +87,7 @@ test('permalink uses canonical origin and stays stable', async ({ page, context 
   await page.goto('/posts/astro-content/');
   await page.locator('[data-copy-link]').click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    'https://v7.soyonagasaki.com/posts/astro-content/',
+    siteUrl('/posts/astro-content/'),
   );
   await expect(page.locator('[data-copy-link]')).toContainText('链接已复制');
 });
