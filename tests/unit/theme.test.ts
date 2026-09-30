@@ -106,10 +106,22 @@ describe('the template guard', () => {
     const { readFile } = await import('node:fs/promises');
     const { resolve } = await import('node:path');
     const source = await readFile(resolve('src/site.config.ts'), 'utf8');
-    expect(source).toContain('TEMPLATE_REMOTE');
     expect(source).toContain('has not been set up yet');
     // The override exists so the template itself can be built from an export with no remote.
     expect(source).toContain('V7_TEMPLATE_BUILD');
+    // Two signals, and the reason for each is not obvious — the remote alone blocked a copy whose
+    // owner had pointed it at their own repository, and the marker alone blocked this repository.
+    expect(source).toContain('MARKER');
+    expect(source).toContain('TEMPLATE_REMOTE');
+    expect(source).toContain('remoteIsThisRepository');
+  });
+
+  it('ships the marker that makes the guard apply to copies', async () => {
+    // Committed, so every copy has one; `pnpm setup` deletes it. Without the file in the
+    // repository, a copy would have nothing to trip the guard.
+    const { existsSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+    expect(existsSync(resolve('this-repository-is-a-template'))).toBe(true);
   });
 
   it('ships a setup script that rewrites identity and clears the guard', async () => {
@@ -123,6 +135,8 @@ describe('the template guard', () => {
     // Content names authors explicitly and the schema rejects an unknown one, so a rename without
     // this leaves posts pointing at an id that no longer exists.
     expect(script).toContain('authors:');
+    // Deleting the marker is what lets the build run; without it a configured site stays blocked.
+    expect(script).toContain('rm(resolve(MARKER)');
   });
 
   it('documents how to obtain the theme', async () => {

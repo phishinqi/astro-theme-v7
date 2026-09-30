@@ -8,7 +8,7 @@
 //   pnpm setup -- --url https://example.com --title "My blog" --repo me/my-blog --author me
 //
 // Every flag is optional; anything omitted keeps its current value or is derived.
-import { glob, readFile, writeFile } from 'node:fs/promises';
+import { glob, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
@@ -35,6 +35,9 @@ if (args.values.help) {
 `);
   process.exit(0);
 }
+
+/** Committed with every copy; the build refuses while it exists. Keep in step with src/site.config.ts. */
+const MARKER = 'this-repository-is-a-template';
 
 const read = async (path) => JSON.parse(await readFile(resolve(path), 'utf8'));
 const write = async (path, value) =>
@@ -140,18 +143,9 @@ await write('site.config.json', site);
 await write('data/authors.json', authors);
 await write('cms.config.github.json', cms);
 
-// Written last, and the build refuses without it: a run that fails part-way leaves the guard in
-// place rather than a half-configured site that would publish under the wrong identity. `.env` is
-// git-ignored, so this marks the working copy and never travels to anyone else's.
-await writeFile(
-  resolve('.env'),
-  [
-    '# Written by `pnpm setup`. Not committed; see src/site.config.ts for what reads it.',
-    'SITE_CONFIGURED=1',
-    `SITE_URL=${site.siteURL}`,
-    '',
-  ].join('\n'),
-);
+// Deleted last, so a run that fails part-way leaves the guard in place rather than a
+// half-configured site that would publish under the wrong identity.
+await rm(resolve(MARKER), { force: true });
 
 console.log(`siteURL      ${site.siteURL}`);
 console.log(`title        ${site.title}`);

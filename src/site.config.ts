@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import raw from '../site.config.json';
 import categories from '../data/categories.json';
 import authors from '../data/authors.json';
@@ -8,6 +10,8 @@ import { licensePresets } from './lib/licenses';
 
 export type Locale = 'zh-CN' | 'en';
 export type Localized = Record<Locale, string>;
+// Resolved against the working directory, which is the project root for every astro command.
+const root = process.cwd();
 const localizedSchema = z.object({ 'zh-CN': z.string(), en: z.string() });
 const id = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const safeLink = z
@@ -109,23 +113,29 @@ if (
 new Intl.DateTimeFormat(parsed.locale, { timeZone: parsed.timeZone });
 
 /**
- * Refuse to build a copy of this template that nobody has configured.
+ * Refuse to build an unconfigured copy of this template.
  *
  * The repository is a GitHub template. A copy arrives carrying the original author's `siteURL`,
- * their repository as the editor's backend, and their writing as the sample content — and none of
- * that is visible until the output ships, at which point the canonical URLs, RSS and sitemap all
+ * their repository as the editor's backend, and their writing as the sample content — none of
+ * which is visible until the output ships, at which point the canonical URLs, RSS and sitemap all
  * name somebody else's domain and the editor writes to their repository.
  *
- * The signal is the git remote. This repository's remote identifies the template, so its own build
- * proceeds; a copy made from it has a different remote and stops until `pnpm setup` has run, which
- * is the step that rewrites the identity. `siteURL` would be the obvious thing to test and it does
- * not work, because the template's repository is itself a live site using that origin.
+ * Two signals, and neither is sufficient alone:
  *
- * `V7_TEMPLATE_BUILD=1` overrides, for building the template from an export with no remote.
+ * - The marker file is committed, so every copy has one, and `pnpm setup` deletes it. Alone it
+ *   would also block this repository, which is the template and carries the same file.
+ * - The remote identifies this repository as the template's origin. Alone it would block a copy
+ *   whose owner had already pointed it at their own repository — the correct thing to do — since
+ *   setup cannot change a remote.
+ *
+ * Together: a copy has the marker and a remote that is not the template, so it stops; this
+ * repository has both the marker and the template's remote, so it builds. `V7_TEMPLATE_BUILD=1`
+ * overrides for an export or tarball with no remote at all.
  */
 const TEMPLATE_REMOTE = 'phishinqi/astro-theme-v7';
-function isTheTemplateCheckout(): boolean {
-  if (process.env['V7_TEMPLATE_BUILD'] === '1') return true;
+const MARKER = 'this-repository-is-a-template';
+
+function remoteIsThisRepository(): boolean {
   try {
     const remote = execFileSync('git', ['config', '--get', 'remote.origin.url'], {
       encoding: 'utf8',
@@ -133,12 +143,16 @@ function isTheTemplateCheckout(): boolean {
     }).trim();
     return remote.includes(TEMPLATE_REMOTE);
   } catch {
-    // No git, or no remote: an export or a tarball. Treat it as a copy, which is the safe reading —
-    // the guard's whole job is to stop an unconfigured site from being published.
+    // No git, or no remote. Not this repository, as far as this check can tell.
     return false;
   }
 }
-if (!isTheTemplateCheckout()) {
+
+if (
+  process.env['V7_TEMPLATE_BUILD'] !== '1' &&
+  existsSync(resolve(root, MARKER)) &&
+  !remoteIsThisRepository()
+) {
   throw new Error(
     'This site has not been set up yet. Run ' +
       '`pnpm setup -- --url https://your-domain --repo you/your-repo`, then build again. ' +
