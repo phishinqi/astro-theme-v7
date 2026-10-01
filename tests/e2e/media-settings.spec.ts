@@ -5,11 +5,12 @@ test('media settings offers three destinations and persists independent reposito
   page,
 }) => {
   const config = JSON.parse(readFileSync('cms.config.github.json', 'utf8'));
+  const site = JSON.parse(readFileSync('site.config.json', 'utf8'));
   config.backend = {
     name: 'local',
     local: {
       kind: 'memory',
-      files: { 'site.config.json': readFileSync('site.config.json', 'utf8') },
+      files: { 'site.config.json': JSON.stringify(site) },
     },
   };
   await page.route('**/admin/', async (route) => {
@@ -23,7 +24,7 @@ test('media settings offers three destinations and persists independent reposito
   await page.goto('/admin/');
   await page.getByRole('button', { name: '站点设置', exact: true }).click();
   const provider = page.locator('#media-provider-field');
-  await expect(provider).toHaveValue('repo');
+  await expect(provider).toHaveValue(site.media.provider);
   await expect(provider.locator('option')).toContainText([
     '—',
     '博客仓库固定目录',
