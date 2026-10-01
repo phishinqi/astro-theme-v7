@@ -82,7 +82,7 @@
     "mediaRepo": "phishinqi/blog-img",
     "mediaBranch": "main",
     "mediaPath": "images",
-    "mediaPublicUrl": ""
+    "mediaPublicUrl": "https://raw.githubusercontent.com/phishinqi/blog-img/main/images"
   },
   "cms": {
     "enabled": true

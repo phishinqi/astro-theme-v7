@@ -7,7 +7,14 @@
     "authBase": "https://v7.soyonagasaki.com",
     "authEndpoint": "api/auth"
   },
-  "media": { "maxEdge": 2400, "provider": "r2", "endpoint": "/api/media" },
+  "media": {
+    "maxEdge": 2400,
+    "provider": "github",
+    "repo": "phishinqi/blog-img",
+    "branch": "main",
+    "repoPath": "images",
+    "publicPath": "https://raw.githubusercontent.com/phishinqi/blog-img/main/images"
+  },
   "locale": "zh-CN",
   "preview": {
     "pathTemplate": "/posts/{{slug}}/",
@@ -539,7 +546,7 @@
             },
             "media.mediaPublicUrl": {
               "label": "媒体图片公开地址",
-              "hint": "该目录的公开 HTTPS 地址，例如 https://img.example.com/images。"
+              "hint": "独立 Media Repo 必填。公开仓库可填 https://raw.githubusercontent.com/用户名/仓库/分支/图片目录；也可填图片域名。留空会导致部署失败，线上继续使用旧配置。"
             },
             "media.licenseText": { "label": "自定义许可说明" }
           }
