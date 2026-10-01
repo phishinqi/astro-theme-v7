@@ -40,11 +40,12 @@ if (new Set(categories.categories.map((a) => a.id)).size !== categories.categori
 export const authorRegistry = z
   .record(id, authorSchema)
   .parse(Object.fromEntries(authors.authors.map(({ id, ...value }) => [id, value])));
-if (new Set(photoTags.tags.map((t) => t.id)).size !== photoTags.tags.length)
+const photoTagEntries = z.array(z.object({ id, label: localizedSchema })).parse(photoTags.tags);
+if (new Set(photoTagEntries.map((t) => t.id)).size !== photoTagEntries.length)
   throw new Error('Duplicate photo tag ID.');
 export const photoTagRegistry = z
   .record(id, localizedSchema)
-  .parse(Object.fromEntries(photoTags.tags.map((t) => [t.id, t.label])));
+  .parse(Object.fromEntries(photoTagEntries.map((t) => [t.id, t.label])));
 export const categoryRegistry = z
   .record(id, categorySchema)
   .parse(Object.fromEntries(categories.categories.map(({ id, ...value }) => [id, value])));

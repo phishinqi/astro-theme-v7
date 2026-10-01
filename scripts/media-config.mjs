@@ -24,7 +24,14 @@ export function configureMedia(source, env, siteMedia) {
               repoPath: siteMedia.repoPath || 'public/images/uploads',
               publicPath: siteMedia.publicPath || '/images/uploads',
             };
-    source = { ...source, media: { maxEdge: source.media?.maxEdge ?? 2400, ...settings } };
+    source = {
+      ...source,
+      media: {
+        maxEdge: source.media?.maxEdge ?? 2400,
+        exif: siteMedia.exifPrefill ?? source.media?.exif ?? true,
+        ...settings,
+      },
+    };
     // Site-owned media settings take precedence over old deployment overrides.
     env = {};
   }

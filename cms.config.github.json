@@ -9,11 +9,12 @@
   },
   "media": {
     "maxEdge": 2400,
+    "exif": true,
     "provider": "github",
     "repo": "phishinqi/blog-img",
     "branch": "main",
     "repoPath": "images",
-    "publicPath": "https://raw.githubusercontent.com/phishinqi/blog-img/main/images"
+    "publicPath": "https://cdn.jsdelivr.net/gh/phishinqi/blog-img@main/images"
   },
   "locale": "zh-CN",
   "preview": {
@@ -546,9 +547,14 @@
             },
             "media.mediaPublicUrl": {
               "label": "媒体图片公开地址",
-              "hint": "独立 Media Repo 必填。公开仓库可填 https://raw.githubusercontent.com/用户名/仓库/分支/图片目录；也可填图片域名。留空会导致部署失败，线上继续使用旧配置。"
+              "hint": "独立 Media Repo 必填。公开仓库 CDN 示例：https://cdn.jsdelivr.net/gh/用户名/仓库@main/images；也可填写图片域名。"
             },
-            "media.licenseText": { "label": "自定义许可说明" }
+            "media.licenseText": { "label": "自定义许可说明" },
+            "media.exifPrefill": {
+              "widget": "boolean",
+              "label": "自动填充 EXIF",
+              "hint": "上传原图后填充空白的摄影参数和拍摄日期，保留手填值。"
+            }
           }
         }
       ]
