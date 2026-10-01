@@ -155,12 +155,12 @@ describe('the template guard', () => {
     expect(script).not.toContain("id !== 'guest'");
   });
 
-  it('ships a placeholder rather than a real OAuth client id', async () => {
-    // A real-looking client id in a template is worse than an obvious placeholder: a copy would
-    // silently authenticate against an app it does not own.
+  it('keeps the example OAuth client id as a placeholder', async () => {
+    // The live demo may configure its own OAuth app in wrangler.toml. The example stays
+    // generic, and bootstrap resets the client id when configuring a new copy.
     const { readFile } = await import('node:fs/promises');
     const { resolve } = await import('node:path');
-    const wrangler = await readFile(resolve('wrangler.toml'), 'utf8');
+    const wrangler = await readFile(resolve('wrangler.example.toml'), 'utf8');
     const clientId = /^GITHUB_CLIENT_ID = "([^"]*)"/m.exec(wrangler)?.[1];
     expect(clientId).toBe('replace-with-oauth-client-id');
   });
