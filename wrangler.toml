@@ -19,7 +19,7 @@ GITHUB_CLIENT_ID = "replace-with-oauth-client-id"
 # R2 mode only: the public base URL of the bucket (custom domain or r2.dev).
 # PUBLIC_MEDIA_URL = "https://img.soyonagasaki.com"
 
-# R2 mode only. Uncomment together with site.config.json media.provider = "r2".
+# R2 mode only. Uncomment and build with MEDIA_PROVIDER=r2. See docs/media-storage.md.
 # [[r2_buckets]]
 # binding = "MEDIA"
 # bucket_name = "v7-media"

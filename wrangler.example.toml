@@ -11,7 +11,7 @@ GITHUB_CLIENT_ID = "replace-with-oauth-client-id"
 # R2 mode only: the public base URL of the bucket (custom domain or r2.dev).
 PUBLIC_MEDIA_URL = "https://img.example.com"
 
-# R2 mode only.
+# R2 mode only. Build with MEDIA_PROVIDER=r2; see docs/media-storage.md.
 [[r2_buckets]]
 binding = "MEDIA"
 bucket_name = "v7-media"

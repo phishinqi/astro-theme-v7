@@ -173,10 +173,6 @@
       "format": "frontmatter",
       "identifierField": "slug",
       "contentField": "body",
-      "media": {
-        "repoPath": "public/images/albums/{{slug}}",
-        "publicPath": "/images/albums/{{slug}}"
-      },
       "fields": [
         { "name": "title", "widget": "string", "label": "标题", "required": true },
         { "name": "slug", "widget": "string", "label": "slug", "required": true },
