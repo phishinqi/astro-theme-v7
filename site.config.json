@@ -73,13 +73,13 @@
     "externalNewTab": true
   },
   "media": {
-    "provider": "r2",
+    "provider": "media-repo",
     "license": "all-rights-reserved",
     "licenseText": "",
     "repoPath": "public/images/uploads",
     "publicPath": "/images/uploads",
     "endpoint": "/api/media",
-    "mediaRepo": "",
+    "mediaRepo": "phishinqi/blog-img",
     "mediaBranch": "main",
     "mediaPath": "images",
     "mediaPublicUrl": ""
