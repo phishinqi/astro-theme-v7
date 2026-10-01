@@ -61,7 +61,7 @@ npm install --global pnpm@12.5.1 && pnpm install --frozen-lockfile && pnpm build
 3. **仅 R2 模式**：创建 R2 bucket 并开启公开访问（自定义域名或 r2.dev），然后：
    - 在 Settings → Bindings 添加 R2 绑定，变量名 `MEDIA`
    - 设置变量 `PUBLIC_MEDIA_URL`，为 bucket 的公开地址，例如 `https://img.example.com`
-   - 设置构建变量 `MEDIA_PROVIDER=r2` 和 `MEDIA_ENDPOINT=/api/media`，使用配套 v7-cms 构建；按[图片存储说明](media-storage.md)验证上传和图片 URL
+   - 在后台图片存储中选择 R2 Bucket，上传接口设为 `/api/media`，保存后重新部署；按[图片存储说明](media-storage.md)验证上传和图片 URL
 4. 重新部署，打开 `https://你的域名/admin/`（或点页脚的“写作”），用 GitHub 登录。
 5. 第二位作者：在 GitHub 仓库 Settings → Collaborators 邀请对方并授予写权限，再在后台“作者”中添加资料。
 

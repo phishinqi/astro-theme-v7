@@ -40,3 +40,41 @@ it('requires a distinct media repository and public URL', () => {
   });
   expect(result.collections[0].media).toBeUndefined();
 });
+
+it('uses saved site settings ahead of stale environment overrides', () => {
+  const result = configureMedia(
+    source,
+    { MEDIA_PROVIDER: 'r2' },
+    { provider: 'repo', repoPath: 'public/photos', publicPath: '/photos' },
+  );
+  expect(result.media).toMatchObject({
+    provider: 'repo',
+    repoPath: 'public/photos',
+    publicPath: '/photos',
+  });
+  expect(result.collections[0].media).toBeUndefined();
+});
+it('maps all settings choices and preserves the legacy github meaning', () => {
+  expect(configureMedia(source, {}, { provider: 'github' }).media.provider).toBe('repo');
+  expect(configureMedia(source, {}, { provider: 'r2' }).media.endpoint).toBe('/api/media');
+  expect(
+    configureMedia(
+      source,
+      {},
+      {
+        provider: 'media-repo',
+        mediaRepo: 'owner/assets',
+        mediaBranch: 'pictures',
+        mediaPath: 'photos',
+        mediaPublicUrl: 'https://img.example/photos',
+      },
+    ).media,
+  ).toMatchObject({
+    provider: 'github',
+    repo: 'owner/assets',
+    branch: 'pictures',
+    repoPath: 'photos',
+    publicPath: 'https://img.example/photos',
+  });
+  expect(() => configureMedia(source, {}, { provider: 'media-repo' })).toThrow();
+});

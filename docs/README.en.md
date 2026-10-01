@@ -70,7 +70,7 @@ Use explicit ISO dates with time zones. Draft and future content is excluded fro
 
 Writing happens in [v7-cms](https://github.com/phishinqi/v7-cms), a separate editor that this theme does not bundle. `pnpm build` copies its two build artifacts into public/admin and the admin page mounts them; the editor itself never ships with the site. Plain Markdown supports source and visual editing, and the editor picks the mode per file. Complex markup, equations and Mermaid use source mode; MDX always uses source editing and is not executed inside the preview.
 
-Media uploads support the content repository, an R2 bucket, or a separate GitHub repository. Configure `cms.config.json` or the `MEDIA_PROVIDER` build variable. `MEDIA_REPO` is the destination repository for the independent GitHub mode. See [image storage and R2](media-storage.md) for configuration, authentication, public URLs and the required editor build.
+Media uploads support the content repository, an R2 bucket, or a separate GitHub repository. Select the destination in Site Settings → Image storage, save, wait for deployment and reload the editor. `MEDIA_REPO` is the destination repository for the independent GitHub mode. See [image storage and R2](media-storage.md) for configuration, authentication, public URLs and the required editor build.
 
 Images are encoded as WebP in the browser, stripping metadata. Only successful uploads update the image field; nested photo dimensions and responsive URLs are updated alongside it. Keep originals separately. Changing storage does not migrate existing images.
 

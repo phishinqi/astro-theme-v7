@@ -118,7 +118,7 @@ featured: false
 
 ## 图片与相册
 
-后台支持博客仓库固定目录、R2 Bucket 和独立 GitHub 图片仓库。使用 `cms.config.json` 的 `media` 或构建环境变量选择，详见[图片存储与 R2](docs/media-storage.md)。主题已引用支持三种上传方式的 v7-cms v0.2.0。
+后台支持博客仓库固定目录、R2 Bucket 和独立 GitHub 图片仓库。在后台「站点设置 → 图片存储」选择，详见[图片存储与 R2](docs/media-storage.md)。主题已引用支持三种上传方式的 v7-cms v0.2.0。
 
 相册写在 `content/albums/`，每张图片可以记录说明、日期、地点、标签、作者、许可和相机参数。图片上传前编码为 WebP 并移除元数据，成功存储后回填 URL 和尺寸。原图请自行归档。
 

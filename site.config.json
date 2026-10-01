@@ -73,10 +73,16 @@
     "externalNewTab": true
   },
   "media": {
-    "provider": "github",
-    "exifPrefill": true,
+    "provider": "repo",
     "license": "all-rights-reserved",
-    "licenseText": ""
+    "licenseText": "",
+    "repoPath": "public/images/uploads",
+    "publicPath": "/images/uploads",
+    "endpoint": "/api/media",
+    "mediaRepo": "",
+    "mediaBranch": "main",
+    "mediaPath": "images",
+    "mediaPublicUrl": ""
   },
   "cms": {
     "enabled": true

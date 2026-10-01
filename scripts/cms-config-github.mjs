@@ -22,7 +22,8 @@ const AUTH_BASE = process.env.CMS_AUTH_BASE ?? 'https://v7.soyonagasaki.com';
 const AUTH_ENDPOINT = process.env.CMS_AUTH_ENDPOINT ?? 'api/auth';
 const REPO = process.env.CMS_REPO ?? 'phishinqi/astro-theme-v7';
 
-const source = configureMedia(JSON.parse(await readFile(SOURCE, 'utf8')), process.env);
+const site = JSON.parse(await readFile('site.config.json', 'utf8'));
+const source = configureMedia(JSON.parse(await readFile(SOURCE, 'utf8')), process.env, site.media);
 
 // Where the deployed editor previews from.
 //

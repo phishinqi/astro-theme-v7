@@ -4,26 +4,23 @@
 
 本功能从 v7-cms v0.2.0 起提供，主题已固定引用该版本。构建时优先使用 `V7_CMS` 指定路径或同级 CMS 构建；没有本地构建时下载 v0.2.0 的 GitHub Release。原图请自行归档。
 
-## 配置入口
+## 后台设置
 
-`cms.config.json` 的 `media` 是后台媒体配置来源。`pnpm cms:config` / `pnpm build` 生成生产版 `cms.config.github.json` 时，可以用下列构建环境变量覆盖。不要直接编辑生成文件。
+打开「站点设置 → 全站配置 → 图片存储」，在「存储方式」下拉框选择：
 
-| 变量               | 作用                                                                                    |
-| ------------------ | --------------------------------------------------------------------------------------- |
-| `MEDIA_PROVIDER`   | `repo`、`r2` 或 `github`                                                                |
-| `MEDIA_PATH`       | 仓库内固定目录；同仓库默认 `public/images/uploads`，通过变量选择独立仓库时默认 `images` |
-| `MEDIA_PUBLIC_URL` | 与上述目录对应的公开 URL 前缀，同仓库可为 `/images/uploads`，独立仓库必须为 HTTPS 地址  |
-| `MEDIA_REPO`       | 独立图片仓库 `owner/repo`，只用于 `github` 模式                                         |
-| `MEDIA_BRANCH`     | 独立图片仓库分支，默认 `main`                                                           |
-| `MEDIA_ENDPOINT`   | R2 上传 API，默认 `/api/media`                                                          |
+| 模式             | 需要填写                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| 博客仓库固定目录 | 博客仓库图片目录、博客图片访问路径，默认 `public/images/uploads` 和 `/images/uploads` |
+| R2 Bucket        | R2 上传接口，默认 `/api/media`；Cloudflare 仍需 `MEDIA` 绑定和 `PUBLIC_MEDIA_URL`     |
+| 独立 Media Repo  | 独立媒体仓库、分支、图片目录、公开 HTTPS 地址                                         |
 
-变量在构建时生效，更改后重新构建部署。显式设置 `MEDIA_PROVIDER` 会清除旧的集合级媒体覆盖，让所有集合使用该部署目标。没有设置时保留 CMS 配置。主题默认已移除相册的路径覆盖，所有图片写入固定目录。
+只需填写所选模式的参数，其他参数可以保留。点击保存会提交 `site.config.json`，等待 Pages 部署完成后刷新后台，新上传即使用新配置。当前已打开的编辑器在刷新前仍使用旧配置。
 
-`site.config.json` 的旧 `media.provider` 和 `exifPrefill` 不控制后台上传，请在 CMS 配置或上述构建变量中选择存储。站点默认许可仍由 `site.config.json` 管理。
+站点设置是媒体配置来源，优先于旧 `MEDIA_*` 构建变量，无需再去 Cloudflare 修改存储模式。旧站点的 `provider: github` 保持「博客仓库」含义；新下拉框使用 `repo`、`r2`、`media-repo`，生成器会把 `media-repo` 转为 CMS 的 `github` 配置。默认许可也在此设置。未接入的旧 EXIF Prefill 开关已从当前站点配置移除。
 
 ## 1. 博客仓库固定目录
 
-默认无需额外变量，CMS 配置如下：
+选择「博客仓库固定目录」。默认无需其他设置，生成的 CMS 配置如下：
 
 ```json
 {
@@ -40,7 +37,7 @@
 
 ## 2. R2 Bucket
 
-构建变量设置 `MEDIA_PROVIDER=r2`，`MEDIA_ENDPOINT=/api/media`。也可以在 CMS 配置中直接设置：
+选择「R2 Bucket」，填写上传接口。生成的 CMS 配置：
 
 ```json
 { "media": { "provider": "r2", "endpoint": "/api/media" } }
@@ -60,14 +57,14 @@
 
 ## 3. 独立 Media Repo
 
-在构建环境中设置：
+在后台填写独立媒体仓库相关字段，示例如下（左侧是对应字段含义）：
 
 ```text
-MEDIA_PROVIDER=github
-MEDIA_REPO=your-name/blog-media
-MEDIA_BRANCH=main
-MEDIA_PATH=images
-MEDIA_PUBLIC_URL=https://img.example.com/images
+存储方式=独立 Media Repo
+独立媒体仓库=your-name/blog-media
+媒体仓库分支=main
+媒体仓库图片目录=images
+媒体图片公开地址=https://img.example.com/images
 ```
 
 对应 CMS 配置：
@@ -90,7 +87,7 @@ CMS 直接通过 GitHub API 向媒体仓库的指定分支提交 WebP，文章�
 
 ## 本地联调与验收
 
-本地默认使用文件夹模式；R2 和独立媒体仓库需要 GitHub 登录令牌，因此联调时将本地 CMS 的 backend 也切换为 GitHub。`astro dev` 不会运行 Cloudflare Pages Functions；R2 应使用运行了 Functions 的同域 Pages 环境。构建变量只覆盖生产配置，不会悄悄让本地文件夹写作向远程上传。
+本地默认使用文件夹模式；R2 和独立媒体仓库需要 GitHub 登录令牌，因此联调时将本地 CMS 的 backend 也切换为 GitHub。`astro dev` 不会运行 Cloudflare Pages Functions；R2 应使用运行了 Functions 的同域 Pages 环境。本地后台也读取站点的媒体配置；远程模式需要有效的 GitHub 登录令牌。
 
 验证三种方式时，分别确认目标目录、bucket 或独立仓库确实存在新图片；独立模式没有向博客仓库写入图片；字段 URL、尺寸正确；保存文章并完成部署后图片可访问。模拟接口测试不替代真实 GitHub / R2 联调。
 

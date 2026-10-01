@@ -1,5 +1,33 @@
 /** Hosted media settings. These values are public configuration, never credentials. */
-export function configureMedia(source, env) {
+export function configureMedia(source, env, siteMedia) {
+  // The site settings form owns the destination. `github` is the legacy same-repo value.
+  if (siteMedia) {
+    const provider =
+      siteMedia.provider === 'media-repo'
+        ? 'github'
+        : siteMedia.provider === 'github'
+          ? 'repo'
+          : siteMedia.provider;
+    const settings =
+      provider === 'github'
+        ? {
+            provider,
+            repo: siteMedia.mediaRepo,
+            branch: siteMedia.mediaBranch || 'main',
+            repoPath: siteMedia.mediaPath || 'images',
+            publicPath: siteMedia.mediaPublicUrl,
+          }
+        : provider === 'r2'
+          ? { provider, endpoint: siteMedia.endpoint || '/api/media' }
+          : {
+              provider: 'repo',
+              repoPath: siteMedia.repoPath || 'public/images/uploads',
+              publicPath: siteMedia.publicPath || '/images/uploads',
+            };
+    source = { ...source, media: { maxEdge: source.media?.maxEdge ?? 2400, ...settings } };
+    // Site-owned media settings take precedence over old deployment overrides.
+    env = {};
+  }
   const media = {
     ...source.media,
     provider: env.MEDIA_PROVIDER ?? source.media?.provider ?? 'repo',
@@ -32,7 +60,7 @@ export function configureMedia(source, env) {
   }
   // An explicit deployment-wide choice replaces older collection path overrides.
   const collections = source.collections.map((collection) => {
-    if (!env.MEDIA_PROVIDER || !collection.media) return collection;
+    if ((!env.MEDIA_PROVIDER && !siteMedia) || !collection.media) return collection;
     const { media: previous, ...rest } = collection;
     void previous;
     return rest;
