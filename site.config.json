@@ -73,7 +73,7 @@
     "externalNewTab": true
   },
   "media": {
-    "provider": "repo",
+    "provider": "r2",
     "license": "all-rights-reserved",
     "licenseText": "",
     "repoPath": "public/images/uploads",

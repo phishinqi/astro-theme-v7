@@ -43,11 +43,26 @@
 { "media": { "provider": "r2", "endpoint": "/api/media" } }
 ```
 
-1. 在 Cloudflare 创建 R2 bucket，为图片配置公开 HTTPS 地址，正式使用建议绑定图片自定义域名。
-2. 在 Pages 的 Settings → Bindings 添加 R2 绑定，名称为 `MEDIA`，选择该 bucket。
-3. 设置运行时变量 `PUBLIC_MEDIA_URL=https://img.example.com`，不要带 `/images` 后缀。接口生成 `https://img.example.com/images/<id>/<width>.webp`。
-4. 设置 `GITHUB_REPO` 为博客仓库。接口使用登录令牌检查该仓库的写权限；`MEDIA_REPO` 不参与 R2 鉴权。
-5. 通过 GitHub 后端登录。个人令牌无需 OAuth 服务；使用 OAuth 时还需 `GITHUB_CLIENT_ID` 和 Secret 类型的 `GITHUB_CLIENT_SECRET`，见[后台登录](cms.md#线上登录oauth-配置)。重新部署后上传图片验证。
+1. 在 Cloudflare → R2 创建存储桶，记下列表中显示的 **bucket 名称**。进入该桶的 Settings，启用 Public Development URL，复制 `https://pub-….r2.dev` 地址；正式使用建议在该页绑定图片自定义域名。
+2. 修改**博客仓库根目录的 `wrangler.toml`**。本主题已有该文件，Git 自动部署也会读取它。如果 Pages 提示 “Bindings for this project are being managed through wrangler.toml”，就在文件中修改，不必再找控制台的添加绑定按钮。
+3. 在已有的 `[vars]` 段内添加 `PUBLIC_MEDIA_URL`；在该段之后添加 R2 绑定。下面是需要合并的示例，**不要重复创建 `[vars]`，不要覆盖原来的 OAuth 等设置**：
+
+   ```toml
+   [vars]
+   GITHUB_REPO = "你的用户名/博客仓库"
+   PUBLIC_MEDIA_URL = "https://pub-你的编号.r2.dev"
+
+   [[r2_buckets]]
+   binding = "MEDIA"
+   bucket_name = "你实际创建的存储桶名称"
+   ```
+
+   `binding` 固定为 `MEDIA`；`bucket_name` 填桶名，不是域名中的编号。`PUBLIC_MEDIA_URL` 填公开 HTTPS 地址，不带 `/images` 后缀，也不是 R2 的 S3 API 地址。不需要申请或填写 R2 Access Key。
+
+4. 提交文件并等待 Pages 部署成功。在后台「站点设置 → 全站配置 → 图片存储」选择「R2 Bucket」，上传接口保留 `/api/media`，保存并等新部署完成，再刷新后台。`GITHUB_REPO` 用于检查登录账号对博客仓库的写权限；`MEDIA_REPO` 不参与 R2 鉴权。
+5. 通过 GitHub 后端登录并上传一张图片：确认 bucket 中出现 `images/` 和 `meta/` 对象，且返回的图片地址能打开。个人令牌无需 OAuth 服务；使用 OAuth 时还需 `GITHUB_CLIENT_ID` 和 Secret 类型的 `GITHUB_CLIENT_SECRET`，见[后台登录](cms.md#线上登录oauth-配置)。
+
+只有未使用 Wrangler 配置管理的 Pages 项目，才通过 Settings → Bindings 添加名为 `MEDIA` 的 R2 绑定，并在 Variables and Secrets 设置 `PUBLIC_MEDIA_URL`。如果显式配置了预览环境，请同时检查其变量和绑定；测试上传也会写入所绑定的桶。
 
 浏览器将最多四个 WebP 宽度变体发送给主题 `/api/media`，Pages Function 通过 `MEDIA` 绑定写入 bucket，并返回 URL、尺寸和 srcset。R2 写入凭据不进入浏览器。接口限制整个请求不超过 16 MB。配置示例见 `wrangler.example.toml`；生产与预览环境分别核对变量和绑定。
 

@@ -54,18 +54,18 @@ npm install --global pnpm@12.5.1 && pnpm install --frozen-lockfile && pnpm build
 1. **创建 GitHub OAuth App**（GitHub → Settings → Developer settings → OAuth Apps → New）：
    - Homepage URL：`https://你的域名`
    - Authorization callback URL：`https://你的域名/api/callback`
-2. **在 Pages 项目中设置变量**（Settings → Variables and Secrets，生产环境）：
+2. **设置登录变量**（本主题使用 `wrangler.toml` 管理普通变量；Secret 在 Pages 的 Settings → Variables and Secrets 中设置）：
    - `GITHUB_REPO`：`owner/repo`，与生产版 `cms.config.github.json` 的 `backend.repo` 一致
    - `GITHUB_CLIENT_ID`：OAuth App 的 Client ID
    - `GITHUB_CLIENT_SECRET`：Client Secret，**选择 Secret 类型**，不要写进仓库
 3. **仅 R2 模式**：创建 R2 bucket 并开启公开访问（自定义域名或 r2.dev），然后：
-   - 在 Settings → Bindings 添加 R2 绑定，变量名 `MEDIA`
-   - 设置变量 `PUBLIC_MEDIA_URL`，为 bucket 的公开地址，例如 `https://img.example.com`
+   - 在仓库 `wrangler.toml` 添加 `[[r2_buckets]]`，其中 `binding = "MEDIA"`、`bucket_name` 填真实桶名
+   - 在已有 `[vars]` 段内设置 `PUBLIC_MEDIA_URL`，为 bucket 的公开地址，例如 `https://img.example.com`
    - 在后台图片存储中选择 R2 Bucket，上传接口设为 `/api/media`，保存后重新部署；按[图片存储说明](media-storage.md)验证上传和图片 URL
 4. 重新部署，打开 `https://你的域名/admin/`（或点页脚的“写作”），用 GitHub 登录。
 5. 第二位作者：在 GitHub 仓库 Settings → Collaborators 邀请对方并授予写权限，再在后台“作者”中添加资料。
 
-使用 `wrangler pages deploy` 而不是 Git 集成时，可以把 `wrangler.example.toml` 复制为 `wrangler.toml` 并填写；Secret 用 `wrangler pages secret put GITHUB_CLIENT_SECRET` 设置。文件一旦存在，Cloudflare 会以它为准，控制台里的同名配置会被覆盖。
+Git 集成与 `wrangler pages deploy` 都可以使用 `wrangler.toml`。本主题已包含该文件，请参考 `wrangler.example.toml` 合并配置，保留已有设置。若控制台提示 “Bindings for this project are being managed through wrangler.toml”，必须修改文件中的绑定并重新部署。Secret 可在控制台设置，或使用 `wrangler pages secret put GITHUB_CLIENT_SECRET --project-name 你的Pages项目名`，不要写入仓库。
 
 ## 上线验收
 

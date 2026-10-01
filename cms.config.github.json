@@ -7,12 +7,7 @@
     "authBase": "https://v7.soyonagasaki.com",
     "authEndpoint": "api/auth"
   },
-  "media": {
-    "maxEdge": 2400,
-    "provider": "repo",
-    "repoPath": "public/images/uploads",
-    "publicPath": "/images/uploads"
-  },
+  "media": { "maxEdge": 2400, "provider": "r2", "endpoint": "/api/media" },
   "locale": "zh-CN",
   "preview": {
     "pathTemplate": "/posts/{{slug}}/",
