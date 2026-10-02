@@ -44,6 +44,30 @@
     },
     {
       "name": "MDX"
+    },
+    {
+      "name": "street"
+    },
+    {
+      "name": "light"
+    },
+    {
+      "name": "architecture"
+    },
+    {
+      "name": "still-life"
+    },
+    {
+      "name": "night"
+    },
+    {
+      "name": "pattern"
+    },
+    {
+      "name": "sketch"
+    },
+    {
+      "name": "paper"
     }
   ]
 }
