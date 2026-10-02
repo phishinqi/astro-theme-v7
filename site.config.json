@@ -91,7 +91,7 @@
       "darkColor": "#91442e",
       "durationMs": 300
     },
-    "stars": { "scope": "all", "density": 1, "opacity": 0.48 }
+    "stars": { "scope": "all", "density": 1, "opacity": 0.48, "speed": 1, "amplitude": 8 }
   },
   "media": {
     "provider": "media-repo",
